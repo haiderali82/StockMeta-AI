@@ -1,45 +1,3 @@
-export const statCards = [
-  {
-    id: 'uploaded',
-    label: 'Total Images Uploaded',
-    value: '1,428',
-    icon: 'photo_library',
-    accent: 'primary',
-    trend: '+12.4%',
-    trendIcon: 'trending_up',
-    note: 'vs. previous 30 days',
-  },
-  {
-    id: 'generated',
-    label: 'Metadata Generated',
-    value: '1,390',
-    icon: 'auto_awesome',
-    iconFilled: true,
-    accent: 'secondary',
-    trend: '97.3%',
-    trendIcon: 'check_circle',
-    note: 'acceptance rate (zero rejections)',
-  },
-  {
-    id: 'keywords',
-    label: 'Keywords Generated',
-    value: '48,650',
-    icon: 'sell',
-    accent: 'tertiary',
-    note: 'optimized rank order',
-    chip: 'Avg 35 / image',
-  },
-  {
-    id: 'exported',
-    label: 'CSV Files Exported',
-    value: '86',
-    icon: 'file_download',
-    accent: 'neutral',
-    note: 'native formats',
-    chip: 'Adobe & Shutterstock',
-  },
-]
-
 export const platforms = {
   adobe: {
     id: 'adobe',
@@ -65,48 +23,6 @@ export const platforms = {
     formatLabel: 'SHUTTERSTOCK (MSHOT CSV)',
   },
 }
-
-export const initialQueueItems = [
-  {
-    id: 1,
-    filename: 'autumn_forest_cabin_fog_01.jpg',
-    ext: 'JPG',
-    dims: '6000 x 4000',
-    size: '14.2 MB',
-    dpi: '300 DPI',
-    status: 'ready',
-    img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD60X3J3gmQAVAmdb9yEKBYrUPO57fGdqs6qjNIM75HIvkw38sSrLLDwx3Xp5ZJtaqnzDIJJxNz4Kb8cigU6hxcIlXu3mhBkU9t5fLebET1Xo7MEMzDPyDQxaryDaAJSyMz9IoPk8uS77YfE5FtMM2y8hzXqnm5aNRWD09i_FKtTMmClvjrPgZYsl5RHkvQ1a1EvYn0UGZQksiV6MwNLBKNYZbb9pIIhM2Zp1qN_xXP',
-  },
-  {
-    id: 2,
-    filename: 'modern_fintech_office_meeting.jpg',
-    ext: 'JPG',
-    size: '18.6 MB',
-    status: 'analyzing',
-    progress: 78,
-    img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuC_rpWjPI7GQlxYvlvLBL77gpWApsfKSGuKIfRfJO3wsMyb1Uqa_4rnSP9fgtSujFI8ubZtnec92bz8aSpmCDDF9SDneqEWjjhbnZTefqDymkU8HYOMLdz9-e1irZh3KoD0OrxsaDc0SYaBV-4n4-gtsrQniub9tOQyaFu96b0h1AOmmDMtXKkRrkVIMxWu4qbCcIHnT_Vgl3JymGoz_y1cxTdP7lqhsD728c19O_20',
-  },
-  {
-    id: 3,
-    filename: 'minimalist_ceramic_coffee_mug.png',
-    ext: 'PNG',
-    dims: '4500 x 4500',
-    size: '9.4 MB',
-    dpi: '300 DPI',
-    status: 'ready',
-    img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCMUnRrie0oREsXUVNt9QTPcJxtGdkM3fbNKkMTnhsV9Y5Arg538fyUIuPpEJwZ3TVEv08DeUu7MuFGADJ7YPN0uIv7PEidjhNE_GX5i_-Y35Kh0rEHlb0Nvv-OonVKTKZMYmJYPlRcLHmaKmzevtyQ9fdjjmN2hx5ANtEo6VsutcbqUUfK5FqB8NPFnTj9kX-qgrbNUB2PqvLkm6OpNm1-Azow-yOLtLOspR_GpP8m',
-  },
-  {
-    id: 4,
-    filename: 'abstract_cyberpunk_neon_sphere.jpg',
-    ext: 'JPG',
-    dims: '8000 x 5000',
-    size: '22.1 MB',
-    dpi: '300 DPI',
-    status: 'ready',
-    img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCcxBs1hq9Jve5k5_V1bRytd1CfIF4omq7cGYl4VKQEgXFls3zyqdSMXBilXRRrLhQxa5PoH5suFdj1ysa-zxOVF__qRWj9yAx9n3UCHA6x5KtMD40JNtqCNEvBHFO9gVjv8dXOoQxQ9ekCoTfbhT_fytXIR_gcQbvq0K61MAv-j2A82eFxSdv6sHfWHDXpE6VaCB9i_YdJSnbVVdaM0ENKfGuR8c9jui1Tejj-LQJq',
-  },
-]
 
 export const initialMetadataRows = [
   // {

@@ -1,4 +1,6 @@
 import Icon from '../common/Icon'
+import Avatar from '../common/Avatar'
+import { useAuth } from '../../context/AuthContext'
 
 const navItems = [
   { path: 'dashboard', label: 'Dashboard', icon: 'dashboard' },
@@ -10,6 +12,8 @@ const navItems = [
 ]
 
 function Sidebar({ open = false, onClose = () => {} }) {
+  const { email } = useAuth()
+
   return (
     <>
       {open && (
@@ -27,12 +31,12 @@ function Sidebar({ open = false, onClose = () => {} }) {
       <div className="flex flex-col">
         <div className="h-16 px-space-lg flex items-center justify-between border-b border-outline-variant/20">
           <div className="flex items-center gap-space-sm">
-            <img
-              alt="StockMeta AI Logo"
-              className="h-8 w-auto object-contain"
-              src="https://lh3.googleusercontent.com/aida/ALJJyrAIOtYh-X7B6Wh_KeGq1t2bi9fzGu9J4dJfIXVayQhDJkpacbDh3SXHYUGpsRzkPhDnLVc5O1kr1dxHAHLWP47uOaFjzaIb5mAWHVpSp6Pi-L-pjw7KlThWDhOpfBrk8X-bDihwDCqGzGfmCq9GPlqR_z2ve6qeo8jpQHUKT132MstcDy6epMuOLAsm2qYVjZssfsaMFy7pcR1cq1R5Yi138ZMUSpdm1hvINoC-w4td0g"
-            />
-            <span className="font-headline-sm text-headline-sm text-on-surface tracking-tight">StockMeta</span>
+            <div className="w-8 h-8 rounded-lg bg-primary-container flex items-center justify-center shadow-[0_1px_8px_rgba(0,0,0,0.04)]">
+              <Icon name="layers" className="text-on-primary text-[18px]" />
+            </div>
+            <span className="font-headline-sm text-headline-sm text-on-surface tracking-tight font-semibold">
+              StockMeta<span className="text-primary font-bold ml-0.5">AI</span>
+            </span>
           </div>
           <button
             type="button"
@@ -86,15 +90,11 @@ function Sidebar({ open = false, onClose = () => {} }) {
           </div>
         </div>
         <div className="flex items-center justify-between pt-space-xs">
-          <div className="flex items-center gap-space-sm">
-            <img
-              alt="Profile"
-              className="w-8 h-8 rounded-full object-cover"
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuBrWAXeh3qhuGEdDvZ7dvh1X7oLH9jmUA4My8syySVo7psdh_z1a0Rizm80oFnSyNuNXg9cEmQMtu7v2Rd1sLv1rsjXOEZeZSDZJX59noISGbgBbHmzjvYptLZQmTuB2E9q-WfO78ZzK3X5iSXlxt-I8ExEyo4lC1bYw7L8OCdBBcl9CxQHmKvntOLu_HESr82aK-YxeB3pMNFvBJu-nC0faS0WWTJZ3MBHOsf27bAh"
-            />
-            <div className="flex flex-col">
-              <span className="font-body-sm text-body-sm text-on-surface font-medium leading-none">Alex Rivera</span>
-              <span className="font-code-xs text-code-xs text-on-surface-variant mt-0.5">Pro Contributor</span>
+          <div className="flex items-center gap-space-sm min-w-0">
+            <Avatar email={email} className="w-8 h-8 font-label-sm text-label-sm" />
+            <div className="flex flex-col min-w-0">
+              <span className="font-body-sm text-body-sm text-on-surface font-medium leading-none truncate">{email || 'Admin'}</span>
+              <span className="font-code-xs text-code-xs text-on-surface-variant mt-0.5">Admin</span>
             </div>
           </div>
           <button type="button" className="text-on-surface-variant hover:text-on-surface p-space-xs rounded hover:bg-surface-container">
