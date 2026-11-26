@@ -5,10 +5,9 @@ import { useAuth } from '../context/AuthContext'
 
 const INITIAL_SECONDS = 300
 const START_SECONDS = INITIAL_SECONDS
-const MOCK_OTP = '000000'
 
 function VerifyCodePage() {
-  const { pendingEmail, completeVerification } = useAuth()
+  const { pendingEmail, verifyOtp, resendOtp } = useAuth()
   const navigate = useNavigate()
   const [digits, setDigits] = useState(['', '', '', '', '', ''])
   const [secondsLeft, setSecondsLeft] = useState(START_SECONDS)
@@ -77,26 +76,30 @@ function VerifyCodePage() {
     }
   }
 
-  function resetTimer() {
-    setSecondsLeft(INITIAL_SECONDS)
-    setResendAgain(60)
-    setError('')
+  async function handleResend() {
+    try {
+      await resendOtp()
+      setSecondsLeft(INITIAL_SECONDS)
+      setResendAgain(60)
+      setError('')
+    } catch (err) {
+      setError(err.message || 'Please wait before requesting a new code.')
+    }
   }
 
-  function verifyCode(code) {
-    if (code !== MOCK_OTP) {
-      setError(`Incorrect code. For this demo, use ${MOCK_OTP}.`)
+  async function verifyCode(code) {
+    setIsVerifying(true)
+    try {
+      await verifyOtp(code)
+      navigate('/dashboard', { replace: true })
+    } catch (err) {
+      setError(err.message || 'Invalid code.')
       setDigits(['', '', '', '', '', ''])
       setFocusedIndex(0)
       inputRefs.current[0]?.focus()
-      return
+    } finally {
+      setIsVerifying(false)
     }
-    setError('')
-    setIsVerifying(true)
-    setTimeout(() => {
-      completeVerification()
-      navigate('/dashboard', { replace: true })
-    }, 500)
   }
 
   function handleSubmit(e) {
@@ -220,7 +223,7 @@ function VerifyCodePage() {
                     <button
                       type="button"
                       disabled={resendAgain > 0}
-                      onClick={resetTimer}
+                      onClick={handleResend}
                       className="font-label-sm text-label-sm text-primary hover:text-primary-container font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       {resendAgain > 0 ? `Resend Code (${resendAgain}s)` : 'Resend Code'}

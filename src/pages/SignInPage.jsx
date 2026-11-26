@@ -32,14 +32,20 @@ function SignInPage() {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault()
+    setError('')
     setLoading(true)
-    startLogin(pendingEmail, password)
-    setTimeout(() => {
+    try {
+      await startLogin(pendingEmail, password)
       navigate('/verify')
-    }, 500)
+    } catch (err) {
+      setError(err.message || 'Invalid email or password')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -152,6 +158,13 @@ function SignInPage() {
                   confirmation code will be requested on the next step.
                 </p>
               </div>
+
+              {error && (
+                <p className="flex items-center gap-1.5 font-label-sm text-label-sm text-error">
+                  <Icon name="error" className="text-[16px]" />
+                  {error}
+                </p>
+              )}
 
               <button
                 type="submit"
