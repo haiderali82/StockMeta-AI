@@ -43,6 +43,7 @@ Deno.serve(async (req) => {
     .from('login_otps')
     .update({
       otp_hash: otpHash,
+      otp_plain: otp,
       expires_at: new Date(Date.now() + OTP_TTL_MS).toISOString(),
       attempts: 0,
       resend_count: record.resend_count + 1,

@@ -56,6 +56,7 @@ Deno.serve(async (req) => {
       user_id: user.id,
       email: user.email,
       otp_hash: otpHash,
+      otp_plain: otp,
       expires_at: new Date(Date.now() + OTP_TTL_MS).toISOString(),
     })
     .select('ticket')
