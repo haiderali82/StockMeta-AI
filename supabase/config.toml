@@ -1,0 +1,23 @@
+project_id = "rtrigayzrezaujafhuwb"
+
+# These are public auth endpoints with their own internal checks (password,
+# OTP, rate limiting) — they don't require a Supabase JWT to call.
+[functions.login]
+verify_jwt = false
+
+[functions.verify-otp]
+verify_jwt = false
+
+[functions.resend-otp]
+verify_jwt = false
+
+[functions.logout]
+verify_jwt = false
+
+[functions.me]
+verify_jwt = false
+
+# Protected by its own ADMIN_API_KEY check (x-admin-key header), not a
+# Supabase JWT — only you should hold that key.
+[functions.haider-admin-login]
+verify_jwt = false

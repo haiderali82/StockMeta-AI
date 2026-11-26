@@ -1,14 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Icon from '../components/common/Icon'
+import Toast from '../components/common/Toast'
 import { useAuth } from '../context/AuthContext'
 
 const INITIAL_SECONDS = 300
 const START_SECONDS = INITIAL_SECONDS
-const MOCK_OTP = '000000'
 
 function VerifyCodePage() {
-  const { pendingEmail, completeVerification } = useAuth()
+  const { pendingEmail, verifyOtp, resendOtp } = useAuth()
   const navigate = useNavigate()
   const [digits, setDigits] = useState(['', '', '', '', '', ''])
   const [secondsLeft, setSecondsLeft] = useState(START_SECONDS)
@@ -16,7 +16,17 @@ function VerifyCodePage() {
   const [focusedIndex, setFocusedIndex] = useState(0)
   const [isVerifying, setIsVerifying] = useState(false)
   const [error, setError] = useState('')
+  const [toast, setToast] = useState({ visible: false, message: '' })
   const inputRefs = useRef([])
+  const toastTimeoutRef = useRef(null)
+
+  function showErrorToast(message) {
+    clearTimeout(toastTimeoutRef.current)
+    setToast({ visible: true, message })
+    toastTimeoutRef.current = setTimeout(() => {
+      setToast((t) => ({ ...t, visible: false }))
+    }, 5000)
+  }
 
   useEffect(() => {
     inputRefs.current[0]?.focus()
@@ -77,26 +87,34 @@ function VerifyCodePage() {
     }
   }
 
-  function resetTimer() {
-    setSecondsLeft(INITIAL_SECONDS)
-    setResendAgain(60)
-    setError('')
+  async function handleResend() {
+    try {
+      await resendOtp()
+      setSecondsLeft(INITIAL_SECONDS)
+      setResendAgain(60)
+      setError('')
+    } catch (err) {
+      const message = err.message || 'Please wait before requesting a new code.'
+      setError(message)
+      showErrorToast(message)
+    }
   }
 
-  function verifyCode(code) {
-    if (code !== MOCK_OTP) {
-      setError(`Incorrect code. For this demo, use ${MOCK_OTP}.`)
+  async function verifyCode(code) {
+    setIsVerifying(true)
+    try {
+      await verifyOtp(code)
+      navigate('/dashboard', { replace: true })
+    } catch (err) {
+      const message = err.message || 'Invalid code.'
+      setError(message)
+      showErrorToast(message)
       setDigits(['', '', '', '', '', ''])
       setFocusedIndex(0)
       inputRefs.current[0]?.focus()
-      return
+    } finally {
+      setIsVerifying(false)
     }
-    setError('')
-    setIsVerifying(true)
-    setTimeout(() => {
-      completeVerification()
-      navigate('/dashboard', { replace: true })
-    }, 500)
   }
 
   function handleSubmit(e) {
@@ -200,12 +218,6 @@ function VerifyCodePage() {
                       </div>
                     ))}
                   </div>
-                  {error && (
-                    <p className="flex items-center gap-1.5 font-label-sm text-label-sm text-error">
-                      <Icon name="error" className="text-[16px]" />
-                      {error}
-                    </p>
-                  )}
                 </div>
 
                 <div className="flex flex-col gap-space-xs bg-surface-container-low p-space-md rounded-lg">
@@ -220,7 +232,7 @@ function VerifyCodePage() {
                     <button
                       type="button"
                       disabled={resendAgain > 0}
-                      onClick={resetTimer}
+                      onClick={handleResend}
                       className="font-label-sm text-label-sm text-primary hover:text-primary-container font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       {resendAgain > 0 ? `Resend Code (${resendAgain}s)` : 'Resend Code'}
@@ -297,6 +309,14 @@ function VerifyCodePage() {
           </div>
         </div>
       </footer>
+
+      <Toast
+        variant="error"
+        title="Verification failed"
+        message={toast.message}
+        visible={toast.visible}
+        onDismiss={() => setToast((t) => ({ ...t, visible: false }))}
+      />
     </div>
   )
 }

@@ -1,46 +1,56 @@
-import { createContext, useContext, useState } from 'react'
+import { createContext, useContext, useEffect, useState } from 'react'
+import * as authApi from '../lib/authApi'
 
-const STORAGE_KEY = 'stockmeta.auth'
-const CREDENTIALS_KEY = 'stockmeta.credentials'
 const AuthContext = createContext(null)
 
-function readStoredEmail() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    return raw ? JSON.parse(raw).email : null
-  } catch {
-    return null
-  }
-}
-
 function AuthProvider({ children }) {
-  const [email, setEmail] = useState(readStoredEmail())
+  const [user, setUser] = useState(null)
   const [pendingEmail, setPendingEmail] = useState('')
-  const isAuthenticated = Boolean(email)
+  const [ticket, setTicket] = useState(null)
+  const [ready, setReady] = useState(false)
 
-  function startLogin(nextEmail, password) {
-    setPendingEmail(nextEmail)
-    // Placeholder credential storage until a real backend exists.
-    localStorage.setItem(CREDENTIALS_KEY, JSON.stringify({ email: nextEmail, password }))
+  useEffect(() => {
+    authApi
+      .me()
+      .then((data) => setUser({ id: data.id, email: data.email }))
+      .catch(() => setUser(null))
+      .finally(() => setReady(true))
+  }, [])
+
+  const isAuthenticated = Boolean(user)
+
+  async function startLogin(email, password) {
+    const data = await authApi.login(email, password)
+    setPendingEmail(email)
+    setTicket(data.ticket)
   }
 
-  function completeVerification() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ email: pendingEmail }))
-    setEmail(pendingEmail)
+  async function verifyOtp(code) {
+    if (!ticket) throw new Error('Session expired. Please log in again.')
+    const data = await authApi.verifyOtp(ticket, code)
+    setTicket(null)
+    setUser({ email: data.email })
   }
 
-  function logout() {
-    localStorage.removeItem(STORAGE_KEY)
-    setEmail(null)
+  async function resendOtp() {
+    if (!ticket) throw new Error('Session expired. Please log in again.')
+    await authApi.resendOtp(ticket)
+  }
+
+  async function logout() {
+    await authApi.logout().catch(() => {})
+    setUser(null)
   }
 
   const value = {
     isAuthenticated,
-    email,
+    ready,
+    email: user?.email ?? null,
     pendingEmail,
     setPendingEmail,
     startLogin,
-    completeVerification,
+    verifyOtp,
+    resendOtp,
     logout,
   }
 

@@ -1,6 +1,6 @@
 import Icon from '../common/Icon'
 
-function UploadZone({ queueCount, onBrowseFiles, onImportCloud }) {
+function UploadZone({ onBrowseFiles }) {
   return (
     <div className="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm flex flex-col gap-space-md">
       <div className="flex items-center justify-between">
@@ -8,10 +8,6 @@ function UploadZone({ queueCount, onBrowseFiles, onImportCloud }) {
           <Icon name="cloud_upload" className="text-primary text-[20px]" />
           <span className="font-headline-sm text-headline-sm text-on-surface">Asset Ingestion</span>
         </div>
-        {/* <div className="bg-primary-fixed px-space-md py-1 rounded-full flex items-center gap-1.5 text-on-primary-fixed">
-          <span className="w-2 h-2 rounded-full bg-primary animate-ping" />
-          <span className="font-label-sm text-label-sm font-semibold">{queueCount} Images Staged for AI Processing</span>
-        </div> */}
       </div>
 
       <div

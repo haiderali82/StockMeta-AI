@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Icon from '../components/common/Icon'
+import Toast from '../components/common/Toast'
 import { useAuth } from '../context/AuthContext'
 
 function GoogleLogo() {
@@ -32,14 +33,28 @@ function SignInPage() {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [toast, setToast] = useState({ visible: false, message: '' })
+  const toastTimeoutRef = useRef(null)
 
-  function handleSubmit(e) {
+  function showErrorToast(message) {
+    clearTimeout(toastTimeoutRef.current)
+    setToast({ visible: true, message })
+    toastTimeoutRef.current = setTimeout(() => {
+      setToast((t) => ({ ...t, visible: false }))
+    }, 5000)
+  }
+
+  async function handleSubmit(e) {
     e.preventDefault()
     setLoading(true)
-    startLogin(pendingEmail, password)
-    setTimeout(() => {
+    try {
+      await startLogin(pendingEmail, password)
       navigate('/verify')
-    }, 500)
+    } catch (err) {
+      showErrorToast(err.message || 'Invalid email or password')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -206,6 +221,14 @@ function SignInPage() {
           </div>
         </div>
       </footer>
+
+      <Toast
+        variant="error"
+        title="Sign-in failed"
+        message={toast.message}
+        visible={toast.visible}
+        onDismiss={() => setToast((t) => ({ ...t, visible: false }))}
+      />
     </div>
   )
 }

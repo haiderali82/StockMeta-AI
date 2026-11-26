@@ -6,7 +6,9 @@ import ProtectedRoute from './components/ProtectedRoute'
 import { useAuth } from './context/AuthContext'
 
 function App() {
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, ready } = useAuth()
+
+  if (!ready) return null
 
   return (
     <Routes>

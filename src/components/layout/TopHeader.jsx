@@ -1,9 +1,10 @@
 import { useNavigate } from 'react-router-dom'
 import Icon from '../common/Icon'
+import Avatar from '../common/Avatar'
 import { useAuth } from '../../context/AuthContext'
 
 function TopHeader({ onMenuClick = () => {} }) {
-  const { logout } = useAuth()
+  const { logout, email } = useAuth()
   const navigate = useNavigate()
 
   function handleLogout() {
@@ -56,11 +57,7 @@ function TopHeader({ onMenuClick = () => {} }) {
         >
           <Icon name="logout" className="text-[20px]" />
         </button>
-        <img
-          alt="Profile"
-          className="w-8 h-8 rounded-full object-cover ring-1 ring-outline-variant/40"
-          src="https://lh3.googleusercontent.com/aida-public/AB6AXuBrWAXeh3qhuGEdDvZ7dvh1X7oLH9jmUA4My8syySVo7psdh_z1a0Rizm80oFnSyNuNXg9cEmQMtu7v2Rd1sLv1rsjXOEZeZSDZJX59noISGbgBbHmzjvYptLZQmTuB2E9q-WfO78ZzK3X5iSXlxt-I8ExEyo4lC1bYw7L8OCdBBcl9CxQHmKvntOLu_HESr82aK-YxeB3pMNFvBJu-nC0faS0WWTJZ3MBHOsf27bAh"
-        />
+        <Avatar email={email} className="w-8 h-8 ring-1 ring-outline-variant/40 font-label-sm text-label-sm" />
       </div>
     </header>
   )
