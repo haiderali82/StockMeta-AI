@@ -31,12 +31,15 @@ function SignInPage() {
   const navigate = useNavigate()
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
-  const [remember, setRemember] = useState(true)
+  const [loading, setLoading] = useState(false)
 
   function handleSubmit(e) {
     e.preventDefault()
-    startLogin(pendingEmail)
-    navigate('/verify')
+    setLoading(true)
+    startLogin(pendingEmail, password)
+    setTimeout(() => {
+      navigate('/verify')
+    }, 500)
   }
 
   return (
@@ -96,7 +99,7 @@ function SignInPage() {
             <form className="flex flex-col gap-space-md" onSubmit={handleSubmit}>
               <div className="flex flex-col gap-1.5">
                 <label className="font-label-sm text-label-sm text-on-surface-variant font-medium" htmlFor="email">
-                  Contributor Email (Adobe / SS ID)
+                  Email
                 </label>
                 <div className="relative flex items-center">
                   <Icon name="alternate_email" className="absolute left-3 text-outline text-[18px] pointer-events-none" />
@@ -104,6 +107,7 @@ function SignInPage() {
                     id="email"
                     type="email"
                     required
+                    placeholder="Enter your email"
                     value={pendingEmail}
                     onChange={(e) => setPendingEmail(e.target.value)}
                     className="w-full pl-9 pr-3 py-2 bg-surface-container-low focus:bg-surface-container-lowest text-on-surface font-body-sm text-body-sm rounded-lg outline-none focus:shadow-[0_0_0_2px_rgba(79,70,229,0.3)] transition-all"
@@ -116,9 +120,9 @@ function SignInPage() {
                   <label className="font-label-sm text-label-sm text-on-surface-variant font-medium" htmlFor="password">
                     Password
                   </label>
-                  <a className="font-label-sm text-label-sm text-primary hover:text-primary-container font-medium transition-colors" href="#">
+                  {/* <a className="font-label-sm text-label-sm text-primary hover:text-primary-container font-medium transition-colors" href="#">
                     Forgot password?
-                  </a>
+                  </a> */}
                 </div>
                 <div className="relative flex items-center">
                   <Icon name="lock" className="absolute left-3 text-outline text-[18px] pointer-events-none" />
@@ -141,19 +145,6 @@ function SignInPage() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 mt-0.5">
-                <input
-                  id="remember"
-                  type="checkbox"
-                  checked={remember}
-                  onChange={(e) => setRemember(e.target.checked)}
-                  className="w-4 h-4 rounded text-primary-container accent-primary-container bg-surface-container-low cursor-pointer"
-                />
-                <label className="font-body-xs text-body-xs text-on-surface-variant cursor-pointer select-none" htmlFor="remember">
-                  Remember this device (30 days)
-                </label>
-              </div>
-
               <div className="flex items-start gap-space-sm p-3 bg-surface-container rounded-lg mt-1">
                 <Icon name="shield_person" className="text-primary text-[18px] shrink-0 mt-0.5" />
                 <p className="font-body-xs text-body-xs text-on-surface-variant leading-relaxed">
@@ -164,24 +155,21 @@ function SignInPage() {
 
               <button
                 type="submit"
-                className="w-full py-2.5 px-space-lg bg-primary-container hover:bg-primary text-on-primary font-headline-sm text-headline-sm font-semibold rounded-lg flex items-center justify-center gap-2 shadow-sm transition-all active:scale-[0.99] mt-1"
+                disabled={loading}
+                className="w-full py-2.5 px-space-lg bg-primary-container hover:bg-primary text-on-primary font-headline-sm text-headline-sm font-semibold rounded-lg flex items-center justify-center gap-2 shadow-sm transition-all active:scale-[0.99] mt-1 disabled:opacity-70 disabled:cursor-not-allowed"
               >
-                <span>Continue with Password</span>
-                <Icon name="arrow_forward" className="text-[18px]" />
+                <span>{loading ? 'Signing in' : 'Continue'}</span>
+                {loading ? (
+                  <Icon name="progress_activity" className="text-[18px] animate-spin" />
+                ) : (
+                  <Icon name="arrow_forward" className="text-[18px]" />
+                )}
               </button>
 
-              <div className="pt-2 flex flex-col items-center">
-                <button
-                  type="button"
-                  className="w-full py-2 px-space-md bg-surface-container-low hover:bg-surface-container text-on-surface font-label-md text-label-md font-medium rounded-lg flex items-center justify-center gap-2 transition-colors"
-                >
-                  <Icon name="domain" className="text-secondary text-[18px]" />
-                  <span>Single Sign-On SAML 2.0 • Use Company SSO</span>
-                </button>
-              </div>
+        
             </form>
 
-            <div className="mt-space-lg pt-space-md border-t border-transparent bg-surface-container-low rounded-lg p-2.5 flex items-center justify-between font-code-xs text-code-xs text-on-surface-variant">
+            {/* <div className="mt-space-lg pt-space-md border-t border-transparent bg-surface-container-low rounded-lg p-2.5 flex items-center justify-between font-code-xs text-code-xs text-on-surface-variant">
               <div className="flex items-center gap-1.5">
                 <Icon name="lock" className="text-primary text-[14px]" />
                 <span>256-BIT TLS ENCRYPTED</span>
@@ -190,17 +178,17 @@ function SignInPage() {
                 <span className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse" />
                 <span className="font-medium">CLUSTER US-EAST OPERATIONAL</span>
               </div>
-            </div>
+            </div> */}
           </div>
 
-          <div className="w-full max-w-[460px] mt-space-lg flex flex-col sm:flex-row items-center justify-between px-space-sm gap-2 text-center text-on-surface-variant font-label-sm text-label-sm">
+          {/* <div className="w-full max-w-[460px] mt-space-lg flex flex-col sm:flex-row items-center justify-between px-space-sm gap-2 text-center text-on-surface-variant font-label-sm text-label-sm">
             <span>StockMeta AI Metadata Protocol v4.2</span>
             <div className="flex items-center gap-space-md">
               <a className="hover:text-primary transition-colors" href="#">Security Overview</a>
               <span className="inline-block w-1 h-1 rounded-full bg-outline-variant" />
               <a className="hover:text-primary transition-colors" href="#">Privacy Shield</a>
             </div>
-          </div>
+          </div> */}
         </div>
       </main>
 

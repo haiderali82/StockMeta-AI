@@ -1,6 +1,7 @@
 import { createContext, useContext, useState } from 'react'
 
 const STORAGE_KEY = 'stockmeta.auth'
+const CREDENTIALS_KEY = 'stockmeta.credentials'
 const AuthContext = createContext(null)
 
 function readStoredEmail() {
@@ -14,11 +15,13 @@ function readStoredEmail() {
 
 function AuthProvider({ children }) {
   const [email, setEmail] = useState(readStoredEmail())
-  const [pendingEmail, setPendingEmail] = useState('alex.rivera@creator.studio')
+  const [pendingEmail, setPendingEmail] = useState('')
   const isAuthenticated = Boolean(email)
 
-  function startLogin(nextEmail) {
+  function startLogin(nextEmail, password) {
     setPendingEmail(nextEmail)
+    // Placeholder credential storage until a real backend exists.
+    localStorage.setItem(CREDENTIALS_KEY, JSON.stringify({ email: nextEmail, password }))
   }
 
   function completeVerification() {

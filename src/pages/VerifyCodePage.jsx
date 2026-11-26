@@ -3,17 +3,24 @@ import { useNavigate } from 'react-router-dom'
 import Icon from '../components/common/Icon'
 import { useAuth } from '../context/AuthContext'
 
-const INITIAL_SECONDS = 60
-const START_SECONDS = 42
+const INITIAL_SECONDS = 300
+const START_SECONDS = INITIAL_SECONDS
+const MOCK_OTP = '000000'
 
 function VerifyCodePage() {
   const { pendingEmail, completeVerification } = useAuth()
   const navigate = useNavigate()
-  const [digits, setDigits] = useState(['8', '4', '2', '', '', ''])
-  const [trustDevice, setTrustDevice] = useState(true)
+  const [digits, setDigits] = useState(['', '', '', '', '', ''])
   const [secondsLeft, setSecondsLeft] = useState(START_SECONDS)
-  const [focusedIndex, setFocusedIndex] = useState(3)
+  const [resendAgain, setResendAgain] = useState(0)
+  const [focusedIndex, setFocusedIndex] = useState(0)
+  const [isVerifying, setIsVerifying] = useState(false)
+  const [error, setError] = useState('')
   const inputRefs = useRef([])
+
+  useEffect(() => {
+    inputRefs.current[0]?.focus()
+  }, [])
 
   useEffect(() => {
     if (secondsLeft <= 0) return
@@ -22,6 +29,14 @@ function VerifyCodePage() {
     }, 1000)
     return () => clearInterval(interval)
   }, [secondsLeft])
+
+  useEffect(() => {
+    if (resendAgain <= 0) return
+    const interval = setInterval(() => {
+      setResendAgain((s) => Math.max(0, s - 1))
+    }, 1000)
+    return () => clearInterval(interval)
+  }, [resendAgain])
 
   const mins = String(Math.floor(secondsLeft / 60)).padStart(2, '0')
   const secs = String(secondsLeft % 60).padStart(2, '0')
@@ -32,8 +47,12 @@ function VerifyCodePage() {
     const next = [...digits]
     next[index] = digit
     setDigits(next)
+    setError('')
     if (digit && index < inputRefs.current.length - 1) {
       inputRefs.current[index + 1]?.focus()
+    }
+    if (next.every((d) => d) && !isVerifying) {
+      verifyCode(next.join(''))
     }
   }
 
@@ -49,21 +68,42 @@ function VerifyCodePage() {
     if (!data) return
     const next = Array.from({ length: 6 }, (_, i) => data[i] || '')
     setDigits(next)
+    setError('')
     const nextFocus = Math.min(data.length, 5)
     inputRefs.current[nextFocus]?.focus()
     setFocusedIndex(nextFocus)
+    if (next.every((d) => d) && !isVerifying) {
+      verifyCode(next.join(''))
+    }
   }
 
   function resetTimer() {
     setSecondsLeft(INITIAL_SECONDS)
+    setResendAgain(60)
+    setError('')
+  }
+
+  function verifyCode(code) {
+    if (code !== MOCK_OTP) {
+      setError(`Incorrect code. For this demo, use ${MOCK_OTP}.`)
+      setDigits(['', '', '', '', '', ''])
+      setFocusedIndex(0)
+      inputRefs.current[0]?.focus()
+      return
+    }
+    setError('')
+    setIsVerifying(true)
+    setTimeout(() => {
+      completeVerification()
+      navigate('/dashboard', { replace: true })
+    }, 500)
   }
 
   function handleSubmit(e) {
     e.preventDefault()
     const code = digits.join('')
     if (code.length === 6) {
-      completeVerification()
-      navigate('/dashboard', { replace: true })
+      verifyCode(code)
     } else {
       const firstEmptyIndex = digits.findIndex((d) => !d)
       inputRefs.current[firstEmptyIndex]?.focus()
@@ -136,7 +176,11 @@ function VerifyCodePage() {
                       <div
                         key={index}
                         className={`relative flex items-center justify-center h-14 rounded-lg shadow-sm transition-all focus-within:bg-surface-container-lowest focus-within:shadow-md ${
-                          focusedIndex === index ? 'bg-surface-container-lowest shadow-md ring-2 ring-primary/30' : 'bg-surface-container-low'
+                          error
+                            ? 'bg-error-container ring-2 ring-error/40'
+                            : focusedIndex === index
+                              ? 'bg-surface-container-lowest shadow-md ring-2 ring-primary/30'
+                              : 'bg-surface-container-low'
                         }`}
                       >
                         <input
@@ -147,6 +191,7 @@ function VerifyCodePage() {
                           pattern="[0-9]*"
                           type="text"
                           value={digit}
+                          disabled={isVerifying}
                           onChange={(e) => handleDigitChange(index, e.target.value)}
                           onKeyDown={(e) => handleKeyDown(index, e)}
                           onPaste={handlePaste}
@@ -155,6 +200,12 @@ function VerifyCodePage() {
                       </div>
                     ))}
                   </div>
+                  {error && (
+                    <p className="flex items-center gap-1.5 font-label-sm text-label-sm text-error">
+                      <Icon name="error" className="text-[16px]" />
+                      {error}
+                    </p>
+                  )}
                 </div>
 
                 <div className="flex flex-col gap-space-xs bg-surface-container-low p-space-md rounded-lg">
@@ -168,11 +219,11 @@ function VerifyCodePage() {
                     </div>
                     <button
                       type="button"
-                      disabled={secondsLeft > 0}
+                      disabled={resendAgain > 0}
                       onClick={resetTimer}
                       className="font-label-sm text-label-sm text-primary hover:text-primary-container font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                     >
-                      Resend Code
+                      {resendAgain > 0 ? `Resend Code (${resendAgain}s)` : 'Resend Code'}
                     </button>
                   </div>
                   <div className="w-full h-1.5 bg-surface-container rounded-full overflow-hidden">
@@ -186,22 +237,18 @@ function VerifyCodePage() {
                 <div className="flex flex-col gap-space-sm">
                   <button
                     type="submit"
-                    className="w-full h-12 bg-primary hover:bg-primary-container text-on-primary font-headline-sm text-headline-sm rounded-lg flex items-center justify-center gap-space-sm shadow-md transition-all active:scale-[0.99]"
+                    disabled={isVerifying}
+                    className="w-full h-12 bg-primary hover:bg-primary-container text-on-primary font-headline-sm text-headline-sm rounded-lg flex items-center justify-center gap-space-sm shadow-md transition-all active:scale-[0.99] disabled:opacity-70 disabled:cursor-not-allowed"
                   >
                     <Icon name="lock" filled className="text-[20px]" />
-                    <span>Verify &amp; Launch Dashboard</span>
-                    <Icon name="arrow_forward" className="text-[20px]" />
+                    <span>{isVerifying ? 'Verifying' : 'Verify'}</span>
+                    {isVerifying ? (
+                      <Icon name="progress_activity" className="text-[18px] animate-spin" />
+                    ) : (
+                      <Icon name="arrow_forward" className="text-[20px]" />
+                    )}
                   </button>
-                  <div className="flex items-center justify-between px-1 text-on-surface-variant font-label-sm text-label-sm">
-                    <label className="flex items-center gap-2 cursor-pointer select-none">
-                      <input
-                        type="checkbox"
-                        checked={trustDevice}
-                        onChange={(e) => setTrustDevice(e.target.checked)}
-                        className="rounded w-3.5 h-3.5 accent-primary cursor-pointer"
-                      />
-                      <span>Trust this machine for 30 days</span>
-                    </label>
+                  <div className="flex items-center justify-end px-1 text-on-surface-variant font-label-sm text-label-sm">
                     <span className="flex items-center gap-1 text-tertiary">
                       <Icon name="verified_user" className="text-[14px]" /> Max-Privilege
                     </span>
@@ -209,49 +256,17 @@ function VerifyCodePage() {
                 </div>
               </form>
 
-              <div className="my-space-xl flex flex-col gap-space-sm">
-                <div className="flex items-center gap-space-md">
-                  <div className="flex-1 h-px bg-surface-container-high" />
-                  <span className="font-code-xs text-code-xs uppercase tracking-widest text-outline">Alternative Options</span>
-                  <div className="flex-1 h-px bg-surface-container-high" />
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-space-sm mt-space-xs">
-                  <button
-                    type="button"
-                    className="flex items-center gap-space-sm p-space-sm bg-surface-container-low hover:bg-surface-container text-left rounded-lg transition-colors group"
-                  >
-                    <div className="w-8 h-8 rounded bg-surface-container-lowest flex items-center justify-center text-primary group-hover:scale-105 transition-transform shadow-sm">
-                      <Icon name="key" className="text-[18px]" />
-                    </div>
-                    <div className="flex flex-col min-w-0">
-                      <span className="font-body-sm text-body-sm font-semibold text-on-surface truncate">Security Key</span>
-                      <span className="font-code-xs text-code-xs text-on-surface-variant truncate">FIDO2 / YubiKey</span>
-                    </div>
-                  </button>
-                  <button
-                    type="button"
-                    className="flex items-center gap-space-sm p-space-sm bg-surface-container-low hover:bg-surface-container text-left rounded-lg transition-colors group"
-                  >
-                    <div className="w-8 h-8 rounded bg-surface-container-lowest flex items-center justify-center text-primary group-hover:scale-105 transition-transform shadow-sm">
-                      <Icon name="phonelink_lock" className="text-[18px]" />
-                    </div>
-                    <div className="flex flex-col min-w-0">
-                      <span className="font-body-sm text-body-sm font-semibold text-on-surface truncate">TOTP App</span>
-                      <span className="font-code-xs text-code-xs text-on-surface-variant truncate">Google / 1Password</span>
-                    </div>
-                  </button>
-                </div>
-              </div>
 
-              <div className="flex items-center justify-center">
+              <div className="flex items-center justify-center mt-4">
                 <a
                   href="#"
                   onClick={(e) => {
                     e.preventDefault()
                     navigate('/login')
                   }}
-                  className="inline-flex items-center gap-1.5 text-on-surface-variant hover:text-on-surface font-body-sm text-body-sm transition-colors group"
+                  className="flex items-center gap-space-sm p-space-md bg-surface-container-low hover:bg-surface-container text-left rounded-xl transition-colors group"
                 >
+                 
                   <Icon name="arrow_back" className="text-[16px] group-hover:-translate-x-0.5 transition-transform" />
                   <span>Back to sign in with different email</span>
                 </a>
