@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Icon from '../components/common/Icon'
+import Toast from '../components/common/Toast'
 import { useAuth } from '../context/AuthContext'
 
 function GoogleLogo() {
@@ -32,17 +33,25 @@ function SignInPage() {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+  const [toast, setToast] = useState({ visible: false, message: '' })
+  const toastTimeoutRef = useRef(null)
+
+  function showErrorToast(message) {
+    clearTimeout(toastTimeoutRef.current)
+    setToast({ visible: true, message })
+    toastTimeoutRef.current = setTimeout(() => {
+      setToast((t) => ({ ...t, visible: false }))
+    }, 5000)
+  }
 
   async function handleSubmit(e) {
     e.preventDefault()
-    setError('')
     setLoading(true)
     try {
       await startLogin(pendingEmail, password)
       navigate('/verify')
     } catch (err) {
-      setError(err.message || 'Invalid email or password')
+      showErrorToast(err.message || 'Invalid email or password')
     } finally {
       setLoading(false)
     }
@@ -159,13 +168,6 @@ function SignInPage() {
                 </p>
               </div>
 
-              {error && (
-                <p className="flex items-center gap-1.5 font-label-sm text-label-sm text-error">
-                  <Icon name="error" className="text-[16px]" />
-                  {error}
-                </p>
-              )}
-
               <button
                 type="submit"
                 disabled={loading}
@@ -219,6 +221,14 @@ function SignInPage() {
           </div>
         </div>
       </footer>
+
+      <Toast
+        variant="error"
+        title="Sign-in failed"
+        message={toast.message}
+        visible={toast.visible}
+        onDismiss={() => setToast((t) => ({ ...t, visible: false }))}
+      />
     </div>
   )
 }

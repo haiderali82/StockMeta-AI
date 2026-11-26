@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Icon from '../components/common/Icon'
+import Toast from '../components/common/Toast'
 import { useAuth } from '../context/AuthContext'
 
 const INITIAL_SECONDS = 300
@@ -15,7 +16,17 @@ function VerifyCodePage() {
   const [focusedIndex, setFocusedIndex] = useState(0)
   const [isVerifying, setIsVerifying] = useState(false)
   const [error, setError] = useState('')
+  const [toast, setToast] = useState({ visible: false, message: '' })
   const inputRefs = useRef([])
+  const toastTimeoutRef = useRef(null)
+
+  function showErrorToast(message) {
+    clearTimeout(toastTimeoutRef.current)
+    setToast({ visible: true, message })
+    toastTimeoutRef.current = setTimeout(() => {
+      setToast((t) => ({ ...t, visible: false }))
+    }, 5000)
+  }
 
   useEffect(() => {
     inputRefs.current[0]?.focus()
@@ -83,7 +94,9 @@ function VerifyCodePage() {
       setResendAgain(60)
       setError('')
     } catch (err) {
-      setError(err.message || 'Please wait before requesting a new code.')
+      const message = err.message || 'Please wait before requesting a new code.'
+      setError(message)
+      showErrorToast(message)
     }
   }
 
@@ -93,7 +106,9 @@ function VerifyCodePage() {
       await verifyOtp(code)
       navigate('/dashboard', { replace: true })
     } catch (err) {
-      setError(err.message || 'Invalid code.')
+      const message = err.message || 'Invalid code.'
+      setError(message)
+      showErrorToast(message)
       setDigits(['', '', '', '', '', ''])
       setFocusedIndex(0)
       inputRefs.current[0]?.focus()
@@ -203,12 +218,6 @@ function VerifyCodePage() {
                       </div>
                     ))}
                   </div>
-                  {error && (
-                    <p className="flex items-center gap-1.5 font-label-sm text-label-sm text-error">
-                      <Icon name="error" className="text-[16px]" />
-                      {error}
-                    </p>
-                  )}
                 </div>
 
                 <div className="flex flex-col gap-space-xs bg-surface-container-low p-space-md rounded-lg">
@@ -300,6 +309,14 @@ function VerifyCodePage() {
           </div>
         </div>
       </footer>
+
+      <Toast
+        variant="error"
+        title="Verification failed"
+        message={toast.message}
+        visible={toast.visible}
+        onDismiss={() => setToast((t) => ({ ...t, visible: false }))}
+      />
     </div>
   )
 }
