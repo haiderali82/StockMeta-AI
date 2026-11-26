@@ -9,13 +9,14 @@ function MetadataTable({
   rows,
   regeneratingId,
   onRemoveKeyword,
-  onAddKeyword,
+  onEditKeywords,
   onCategoryChange,
   onCopy,
   onRegenerate,
   onDelete,
   onDownloadCSV,
   onExportJSON,
+  onDownloadSEOFile,
 }) {
   const [search, setSearch] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('all')
@@ -99,33 +100,43 @@ function MetadataTable({
         </div>
       </div>
 
-      <div className="w-full overflow-x-auto">
-        <table className="w-full text-left text-body-sm">
-          <thead className="bg-surface-container-low font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider select-none">
-            <tr>
-              <th className="py-3 px-space-md w-72" scope="col">Asset &amp; Specs</th>
-              <th className="py-3 px-space-md w-80" scope="col">Commercial Title</th>
-              <th className="py-3 px-space-md w-96" scope="col">Keywords &amp; Density</th>
-              <th className="py-3 px-space-md w-48" scope="col">Category Taxonomy</th>
-              <th className="py-3 px-space-md text-right w-36" scope="col">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-surface-container-low text-on-surface">
-            {filteredRows.map((row) => (
-              <MetadataRow
-                key={row.id}
-                row={row}
-                isRegenerating={regeneratingId === row.id}
-                onRemoveKeyword={onRemoveKeyword}
-                onAddKeyword={onAddKeyword}
-                onCategoryChange={onCategoryChange}
-                onCopy={onCopy}
-                onRegenerate={onRegenerate}
-                onDelete={onDelete}
-              />
-            ))}
-          </tbody>
-        </table>
+      <div className="flex flex-col gap-space-md p-space-lg bg-surface-container-low">
+        {rows.length === 0 ? (
+          <div className="flex flex-col items-center justify-center text-center py-16">
+            <div className="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant mb-space-md">
+              <Icon name="auto_awesome" className="text-[36px]" />
+            </div>
+            <h3 className="font-headline-sm text-headline-sm text-on-surface font-semibold">No Image Generated Yet</h3>
+            <p className="font-body-sm text-body-sm text-on-surface-variant max-w-md mt-1">
+              Upload stock images above to generate commercial titles, descriptions, and keywords ready for export.
+            </p>
+          </div>
+        ) : filteredRows.length === 0 ? (
+          <div className="flex flex-col items-center justify-center text-center py-16">
+            <div className="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant mb-space-md">
+              <Icon name="search_off" className="text-[36px]" />
+            </div>
+            <h3 className="font-headline-sm text-headline-sm text-on-surface font-semibold">No Matches Found</h3>
+            <p className="font-body-sm text-body-sm text-on-surface-variant max-w-md mt-1">
+              No results match your search or category filter.
+            </p>
+          </div>
+        ) : (
+          filteredRows.map((row) => (
+            <MetadataRow
+              key={row.id}
+              row={row}
+              isRegenerating={regeneratingId === row.id}
+              onRemoveKeyword={onRemoveKeyword}
+              onEditKeywords={onEditKeywords}
+              onCategoryChange={onCategoryChange}
+              onCopy={onCopy}
+              onRegenerate={onRegenerate}
+              onDelete={onDelete}
+              onDownloadSEOFile={onDownloadSEOFile}
+            />
+          ))
+        )}
       </div>
 
       <div className="p-space-md bg-surface-container-low flex flex-wrap items-center justify-between gap-space-sm text-body-xs font-body-xs text-on-surface-variant">

@@ -6,7 +6,6 @@ import StatCard from '../components/dashboard/StatCard'
 import PlatformSelector from '../components/dashboard/PlatformSelector'
 import UploadZone from '../components/dashboard/UploadZone'
 import QueueItemCard from '../components/dashboard/QueueItemCard'
-import GenerationBanner from '../components/dashboard/GenerationBanner'
 import MetadataTable from '../components/dashboard/MetadataTable'
 import EmptyState from '../components/dashboard/EmptyState'
 import FailedState from '../components/dashboard/FailedState'
@@ -80,7 +79,7 @@ function DashboardPage() {
   }
 
   function handleBrowseFiles() {
-    showToast('File selector opened: Selected 4 high-res stock files.')
+    showToast('File selector opened: Selected high-res stock files.')
     setMode('completed')
   }
 
@@ -105,7 +104,7 @@ function DashboardPage() {
     showToast('Keyword removed.')
   }
 
-  function handleAddKeyword(rowId) {
+  function handleEditKeywords(rowId) {
     const input = window.prompt(`Enter a new commercial keyword for asset #${rowId}:`)
     const trimmed = input?.trim()
     if (!trimmed) return
@@ -119,11 +118,18 @@ function DashboardPage() {
     setMetadataRows((rows) => rows.map((row) => (row.id === rowId ? { ...row, category } : row)))
   }
 
-  function handleCopy(rowId) {
+  function handleCopy(rowId, field = 'title') {
     const row = metadataRows.find((r) => r.id === rowId)
     if (!row) return
-    navigator.clipboard?.writeText(row.title)
-    showToast(`Copied title: "${row.title.substring(0, 30)}..." to clipboard`)
+    const value = field === 'keywords' ? row.keywords.join(', ') : field === 'description' ? row.description ?? '' : row.title
+    navigator.clipboard?.writeText(value)
+    showToast(`Copied ${field}: "${value.substring(0, 30)}${value.length > 30 ? '...' : ''}" to clipboard`)
+  }
+
+  function handleDownloadSEOFile(rowId) {
+    const row = metadataRows.find((r) => r.id === rowId)
+    if (!row) return
+    showToast(`Downloaded SEO file for "${row.filename}"`)
   }
 
   function handleRegenerate(rowId) {
@@ -160,62 +166,30 @@ function DashboardPage() {
             <WorkspaceModeBar mode={mode} onModeChange={handleModeChange} platformFormatLabel={currentPlatform.formatLabel} />
 
             <div className="p-space-md sm:p-space-xl flex flex-col gap-space-xl">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-space-lg">
+              {/* <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-space-lg">
                 {statCards.map((stat) => (
                   <StatCard key={stat.id} stat={stat} />
                 ))}
-              </div>
+              </div> */}
 
               <PlatformSelector selected={platform} onSelect={handlePlatformSelect} />
 
               <UploadZone queueCount={queueItems.length} onBrowseFiles={handleBrowseFiles} onImportCloud={handleImportCloud} />
 
-              {(mode === 'completed' || mode === 'processing' || mode === 'failed') && (
-                <div className="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm flex flex-col gap-space-md">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-space-xs">
-                      <Icon name="view_carousel" className="text-on-surface text-[20px]" />
-                      <h2 className="font-headline-sm text-headline-sm text-on-surface">Uploaded Images Queue</h2>
-                      <span className="font-code-xs text-code-xs bg-surface-container-high text-on-surface px-2 py-0.5 rounded-full font-medium">
-                        {queueItems.length} items
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-space-sm">
-                      <button
-                        type="button"
-                        onClick={handleClearQueue}
-                        className="text-on-surface-variant hover:text-error font-label-sm text-label-sm transition-colors flex items-center gap-1"
-                      >
-                        <Icon name="clear_all" className="text-[16px]" /> Clear Queue
-                      </button>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-space-md">
-                    {queueItems.map((item) => (
-                      <QueueItemCard key={item.id} item={item} onRemove={handleRemoveQueueItem} />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              <GenerationBanner
-                queueCount={queueItems.length}
-                isProcessing={mode === 'processing'}
-                onGenerate={triggerAIGenerationDemo}
-              />
 
               {(mode === 'completed' || mode === 'processing' || mode === 'failed') && (
                 <MetadataTable
                   rows={metadataRows}
                   regeneratingId={regeneratingId}
                   onRemoveKeyword={handleRemoveKeyword}
-                  onAddKeyword={handleAddKeyword}
+                  onEditKeywords={handleEditKeywords}
                   onCategoryChange={handleCategoryChange}
                   onCopy={handleCopy}
                   onRegenerate={handleRegenerate}
                   onDelete={handleDeleteRow}
                   onDownloadCSV={handleDownloadCSV}
                   onExportJSON={handleExportJSON}
+                  onDownloadSEOFile={handleDownloadSEOFile}
                 />
               )}
 
