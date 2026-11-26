@@ -140,6 +140,7 @@ function MetadataTable({
       </div>
 
       <div className="p-space-md bg-surface-container-low flex flex-wrap items-center justify-between gap-space-sm text-body-xs font-body-xs text-on-surface-variant">
+ {filteredRows.length > 0 && (
         <div className="flex items-center gap-space-md">
           <span>
             Showing <strong>{filteredRows.length}</strong> items ready for upload
@@ -153,6 +154,7 @@ function MetadataTable({
             Avg Tag Count: <strong>{avgTagCount} keywords</strong>
           </span>
         </div>
+         )}
         <div className="flex items-center gap-space-sm">
           <button
             type="button"
@@ -163,6 +165,7 @@ function MetadataTable({
           </button>
         </div>
       </div>
+
     </div>
   )
 }
