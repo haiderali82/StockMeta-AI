@@ -149,6 +149,7 @@ function DashboardPage() {
   async function generateOne(row) {
     setRegeneratingId(row.id)
     setMetadataRows((rows) => rows.map((r) => (r.id === row.id ? { ...r, status: 'generating' } : r)))
+    document.getElementById(`metadata-row-${row.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
 
     try {
       const result = await generateMetadata(row.file, platform)

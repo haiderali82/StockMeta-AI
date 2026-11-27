@@ -14,9 +14,18 @@ function MetadataRow({
   onDownloadSEOFile,
 }) {
   const description = row.description ?? ''
+  const borderClass =
+    row.status === 'done'
+      ? 'border-primary-container'
+      : row.status === 'generating'
+        ? 'border-primary-container animate-pulse'
+        : 'border-amber-500'
 
   return (
-    <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant/30 shadow-xs p-space-lg flex flex-col lg:flex-row gap-space-lg hover:shadow-md transition-shadow">
+    <div
+      id={`metadata-row-${row.id}`}
+      className={`bg-surface-container-lowest rounded-2xl border-2 ${borderClass} shadow-xs p-space-lg flex flex-col lg:flex-row gap-space-lg hover:shadow-md transition-colors`}
+    >
       <div className="flex lg:flex-col items-center lg:items-start gap-space-md lg:w-44 flex-shrink-0">
         <div className="w-24 h-24 lg:w-full lg:h-32 rounded-xl overflow-hidden bg-surface-container border border-outline-variant/20 shadow-xs flex-shrink-0">
           <img className="w-full h-full object-cover" src={row.img} alt={row.filename} />
