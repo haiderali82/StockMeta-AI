@@ -2,7 +2,7 @@ export const platforms = {
   adobe: {
     id: 'adobe',
     name: 'Adobe Stock',
-    logoText: 'St',
+    logoText: 'Ad',
     logoBg: 'bg-red-600',
     tagline: "Optimized for Adobe Sensei indexing & search",
     description:
@@ -13,13 +13,13 @@ export const platforms = {
   shutterstock: {
     id: 'shutterstock',
     name: 'Shutterstock',
-    logoText: null,
+    logoText: 'St',
     logoIcon: 'lens',
     logoBg: 'bg-red-700',
     tagline: 'Optimized for Shutterstock catalog & mShot algorithm',
     description:
       'Generates high-intent descriptions, required 7–50 keywords with comma separators, plus primary & optional secondary categories.',
-    badges: ['Range: 7-50 tags', 'Primary + Secondary Categories', 'MShot CSV Schema'],
+    badges: ['Range: 7-50 tags', '2nd Categories', 'MShot CSV Schema'],
     formatLabel: 'SHUTTERSTOCK (MSHOT CSV)',
   },
 }
