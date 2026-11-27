@@ -22,7 +22,7 @@ export function buildAdobeCsv(rows) {
 
 export function buildShutterstockCsv(rows) {
   const lines = [
-    toCsvRow(['Filename', 'Description', 'Keywords', 'Categories', 'Illustration', 'Mature Content', 'Editorial']),
+    toCsvRow(['Filename', 'Description', 'Keywords', 'Categories', 'Editorial', 'Mature Content', 'Illustration']),
   ]
   rows.forEach((row) => {
     lines.push(
