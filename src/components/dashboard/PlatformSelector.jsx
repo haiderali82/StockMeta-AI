@@ -1,52 +1,56 @@
 import Icon from '../common/Icon'
 import { platforms } from '../../data/dashboardData'
 
+const guidelineNotes = {
+  adobe: 'Auto-tailoring tags strictly for Adobe Stock requirements (5–49 tags).',
+  shutterstock: 'Auto-tailoring tags strictly for Shutterstock requirements (7–50 tags, dual categories).',
+}
+
 function PlatformCard({ platform, active, onSelect }) {
   return (
     <div
       onClick={onSelect}
-      className={`cursor-pointer relative p-space-lg rounded-xl transition-all duration-200 bg-surface-container-lowest ${
-        active
-          ? 'shadow-md ring-2 ring-primary bg-gradient-to-br from-surface-container-lowest via-primary-fixed/15 to-surface-container-lowest'
-          : 'shadow-sm hover:shadow-md hover:bg-surface-container-low/50'
+      className={`cursor-pointer bg-surface-container-lowest p-space-lg rounded-2xl transition-all relative flex flex-col justify-between group ${
+        active ? 'border-2 border-primary shadow-md' : 'border border-outline-variant/40 shadow-xs hover:border-outline-variant'
       }`}
     >
-      <div className="flex items-start justify-between gap-space-sm">
+      <div className="flex items-start justify-between">
         <div className="flex items-center gap-space-md">
-          <div className={`w-12 h-12 rounded-xl text-white flex items-center justify-center font-display-lg text-[22px] font-bold shadow-sm ${platform.logoBg} ${platform.logoText ? 'tracking-tighter' : ''}`}>
-            {platform.logoText ? platform.logoText : <Icon name={platform.logoIcon} className="text-[28px]" />}
+          <div className={`w-10 h-10 rounded-xl text-white font-bold text-base flex items-center justify-center shadow-xs ${platform.logoBg}`}>
+            {platform.logoText ? platform.logoText : <Icon name={platform.logoIcon} className="text-[22px]" />}
           </div>
-          <div className="flex flex-col">
+          <div>
             <div className="flex items-center gap-2">
-              <span className="font-headline-sm text-headline-sm text-on-surface">{platform.name}</span>
+              <h3 className="font-headline-sm text-[15px] font-semibold text-on-surface">{platform.name}</h3>
               {active && (
-                <span className="inline-flex items-center gap-1 font-label-sm text-label-sm bg-primary-container text-on-primary px-2 py-0.5 rounded-full shadow-xs">
-                  <Icon name="check" className="text-[13px]" /> Active Selection
+                <span className="font-code-xs text-code-xs px-2 py-0.5 rounded-full bg-primary-fixed text-primary font-semibold border border-primary/10">
+                  ACTIVE
                 </span>
               )}
             </div>
-            <span className="font-code-xs text-code-xs text-on-surface-variant mt-0.5">{platform.tagline}</span>
+            <p className="font-body-xs text-body-xs text-on-surface-variant mt-0.5">{platform.tagline}</p>
           </div>
         </div>
         <div
-          className={`w-5 h-5 rounded-full flex items-center justify-center ${
-            active ? 'bg-primary text-on-primary' : 'bg-surface-container-highest'
+          className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${
+            active ? 'border-primary' : 'border-outline-variant'
           }`}
         >
-          {active ? (
-            <Icon name="check_circle" className="text-[16px]" />
-          ) : (
-            <div className="w-2 h-2 rounded-full bg-transparent" />
-          )}
+          <div className={`w-2.5 h-2.5 rounded-full ${active ? 'bg-primary' : 'bg-transparent'}`} />
         </div>
       </div>
-      <p className="font-body-sm text-body-sm text-on-surface-variant mt-space-md">{platform.description}</p>
-      <div className="mt-space-md pt-space-xs flex items-center gap-space-sm flex-wrap font-code-xs text-code-xs">
-        {platform.badges.map((badge) => (
-          <span key={badge} className="bg-surface-container-high px-space-xs py-0.5 rounded text-on-surface">
-            {badge}
-          </span>
-        ))}
+      <div className="mt-space-md pt-space-sm border-t border-outline-variant/20 flex items-center flex-wrap gap-space-sm font-code-xs text-code-xs text-on-surface-variant">
+        {platform.badges.map((badge, idx) =>
+          idx < 2 ? (
+            <span key={badge} className="bg-surface-container-low px-2 py-0.5 rounded border border-outline-variant/30 text-on-surface">
+              {badge}
+            </span>
+          ) : (
+            <span key={badge} className="text-on-surface-variant">
+              {badge}
+            </span>
+          )
+        )}
       </div>
     </div>
   )
@@ -54,42 +58,20 @@ function PlatformCard({ platform, active, onSelect }) {
 
 function PlatformSelector({ selected, onSelect }) {
   return (
-    <div className="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm flex flex-col gap-space-md">
-      <div className="flex flex-wrap items-center justify-between gap-space-sm">
-        <div>
-          <h2 className="font-headline-sm text-headline-sm text-on-surface flex items-center gap-space-xs">
-            <Icon name="layers" className="text-primary text-[20px]" /> Target Microstock Platform
-          </h2>
-          <p className="font-body-xs text-body-xs text-on-surface-variant mt-0.5">
-            Select the marketplace algorithm to tailor character limits, category structures, and keyword density.
-          </p>
-        </div>
+    <section className="flex flex-col gap-space-md">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-space-xs">
         <div className="flex items-center gap-2">
-          <span className="font-label-sm text-label-sm text-on-surface-variant">Switch Platform:</span>
-          <div className="inline-flex bg-surface-container-low p-1 rounded-full shadow-inner">
-            {Object.values(platforms).map((p) => (
-              <button
-                key={p.id}
-                type="button"
-                onClick={() => onSelect(p.id)}
-                className={`px-space-md py-1 rounded-full font-label-sm text-label-sm transition-all ${
-                  selected === p.id
-                    ? 'bg-surface-container-lowest text-primary shadow-xs font-semibold'
-                    : 'text-on-surface-variant hover:text-on-surface'
-                }`}
-              >
-                {p.name}
-              </button>
-            ))}
-          </div>
+          <span className="font-code-xs text-code-xs text-on-surface-variant/70 font-semibold uppercase tracking-wider">Zone 1</span>
+          <span className="font-label-md text-label-md font-semibold text-on-surface">Target Marketplace Algorithm</span>
         </div>
+        <span className="font-body-xs text-body-xs text-on-surface-variant">{guidelineNotes[selected]}</span>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-space-lg">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-space-md">
         {Object.values(platforms).map((p) => (
           <PlatformCard key={p.id} platform={p} active={selected === p.id} onSelect={() => onSelect(p.id)} />
         ))}
       </div>
-    </div>
+    </section>
   )
 }
 

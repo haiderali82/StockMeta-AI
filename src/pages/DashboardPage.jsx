@@ -24,6 +24,7 @@ function DashboardPage() {
   const [regeneratingId, setRegeneratingId] = useState(null)
   const [isGenerating, setIsGenerating] = useState(false)
   const [toast, setToast] = useState({ visible: false, message: '' })
+  const [exportCount, setExportCount] = useState(0)
   const nextIdRef = useRef(1)
 
   function showToast(message) {
@@ -186,9 +187,20 @@ function DashboardPage() {
   function handleCopy(rowId, field = 'title') {
     const row = metadataRows.find((r) => r.id === rowId)
     if (!row) return
-    const value = field === 'keywords' ? row.keywords.join(', ') : field === 'description' ? row.description ?? '' : row.title
+    const value =
+      field === 'all'
+        ? [row.title, row.description, row.keywords.join(', ')].filter(Boolean).join('\n')
+        : field === 'keywords'
+        ? row.keywords.join(', ')
+        : field === 'description'
+        ? row.description ?? ''
+        : row.title
     navigator.clipboard?.writeText(value)
-    showToast(`Copied ${field}: "${value.substring(0, 30)}${value.length > 30 ? '...' : ''}" to clipboard`)
+    showToast(
+      field === 'all'
+        ? `Copied title, description & keywords for "${row.filename}"`
+        : `Copied ${field}: "${value.substring(0, 30)}${value.length > 30 ? '...' : ''}" to clipboard`
+    )
   }
 
   function handleDownloadSEOFile(rowId) {
@@ -225,6 +237,7 @@ function DashboardPage() {
     } else {
       triggerDownload('stock_metadata_shutterstock_export.csv', buildShutterstockCsv(doneRows), { bom: true })
     }
+    setExportCount((n) => n + 1)
     showToast(`Downloaded stock_metadata_${type}_export.csv with ${doneRows.length} assets.`)
   }
 
@@ -238,20 +251,70 @@ function DashboardPage() {
     triggerDownload('stock_metadata_export.json', JSON.stringify(payload, null, 2), {
       type: 'application/json;charset=utf-8;',
     })
+    setExportCount((n) => n + 1)
     showToast(`Exported ${doneRows.length} assets as JSON.`)
   }
+
+  const doneRows = metadataRows.filter((row) => row.status === 'done')
+  const generatedTags = doneRows.reduce((sum, row) => sum + (row.keywordTotal ?? row.keywords.length), 0)
 
   return (
     <div className="bg-surface font-body-sm text-body-sm text-on-surface antialiased min-h-screen">
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="lg:pl-64">
-        <TopHeader onMenuClick={() => setSidebarOpen(true)} />
+        <TopHeader
+          onMenuClick={() => setSidebarOpen(true)}
+          platform={platform}
+          onPlatformSelect={handlePlatformSelect}
+          onExportCSV={() => handleDownloadCSV(platform)}
+        />
         <main className="w-full pt-16 bg-surface">
           <div className="flex flex-col w-full">
-            <div className="p-space-md sm:p-space-xl flex flex-col gap-space-xl">
+            <div className="p-space-md sm:p-space-xl flex flex-col gap-space-xl max-w-7xl w-full mx-auto">
+              <div className="flex flex-col md:flex-row md:items-end justify-between gap-space-md pb-space-sm border-b border-outline-variant/20">
+                <div>
+                  <h2 className="font-headline-lg text-headline-lg font-bold tracking-tight text-on-surface">
+                    Commercial Metadata Generator
+                  </h2>
+                  <p className="font-body-sm text-body-sm text-on-surface-variant mt-1 max-w-xl">
+                    Upload high-resolution photography or 3D renders. The vision model analyzes composition, themes, and
+                    commercial intent to generate search-optimized titles and ranked keyword tags.
+                  </p>
+                </div>
+                <div className="flex items-center gap-space-lg font-code-xs text-code-xs flex-wrap">
+                  <div className="flex flex-col">
+                    <span className="text-on-surface-variant">UPLOADED</span>
+                    <span className="font-headline-sm text-[18px] font-bold text-on-surface tracking-tight">
+                      {metadataRows.length}
+                    </span>
+                  </div>
+                  <div className="h-6 w-px bg-outline-variant/30" />
+                  <div className="flex flex-col">
+                    <span className="text-on-surface-variant">GENERATED TAGS</span>
+                    <span className="font-headline-sm text-[18px] font-bold text-on-surface tracking-tight">
+                      {generatedTags}
+                    </span>
+                  </div>
+                  <div className="h-6 w-px bg-outline-variant/30" />
+                  <div className="flex flex-col">
+                    <span className="text-on-surface-variant">READY TO EXPORT</span>
+                    <span className="font-headline-sm text-[18px] font-bold text-on-surface tracking-tight">
+                      {doneRows.length}
+                    </span>
+                  </div>
+                  <div className="h-6 w-px bg-outline-variant/30" />
+                  <div className="flex flex-col">
+                    <span className="text-on-surface-variant">EXPORTS</span>
+                    <span className="font-headline-sm text-[18px] font-bold text-on-surface tracking-tight">
+                      {exportCount}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
               <PlatformSelector selected={platform} onSelect={handlePlatformSelect} />
 
-              <UploadZone onFilesSelected={handleFilesSelected} />
+              <UploadZone onFilesSelected={handleFilesSelected} rows={metadataRows} />
 
               <GenerationBanner
                 queueCount={metadataRows.filter((row) => row.status === 'pending').length}
@@ -261,6 +324,7 @@ function DashboardPage() {
 
               <MetadataTable
                 rows={metadataRows}
+                platform={platform}
                 regeneratingId={regeneratingId}
                 onRemoveKeyword={handleRemoveKeyword}
                 onEditKeywords={handleEditKeywords}
