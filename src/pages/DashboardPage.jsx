@@ -15,6 +15,7 @@ import {
   densityFor,
 } from '../data/dashboardData'
 import { generateMetadata } from '../lib/generateApi'
+import { buildAdobeCsv, buildShutterstockCsv, triggerDownload } from '../lib/csvExport'
 
 function DashboardPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -214,11 +215,30 @@ function DashboardPage() {
   }
 
   function handleDownloadCSV(type) {
-    showToast(`Generated & downloaded stock_metadata_${type}_export.csv with ${metadataRows.length} assets.`)
+    const doneRows = metadataRows.filter((row) => row.status === 'done')
+    if (doneRows.length === 0) {
+      showToast('No generated images to export yet.')
+      return
+    }
+    if (type === 'adobe') {
+      triggerDownload('stock_metadata_adobe_export.csv', buildAdobeCsv(doneRows))
+    } else {
+      triggerDownload('stock_metadata_shutterstock_export.csv', buildShutterstockCsv(doneRows), { bom: true })
+    }
+    showToast(`Downloaded stock_metadata_${type}_export.csv with ${doneRows.length} assets.`)
   }
 
   function handleExportJSON() {
-    showToast('Exported full IPTC / XMP compliant JSON payload.')
+    const doneRows = metadataRows.filter((row) => row.status === 'done')
+    if (doneRows.length === 0) {
+      showToast('No generated images to export yet.')
+      return
+    }
+    const payload = doneRows.map(({ file: _file, img: _img, ...rest }) => rest)
+    triggerDownload('stock_metadata_export.json', JSON.stringify(payload, null, 2), {
+      type: 'application/json;charset=utf-8;',
+    })
+    showToast(`Exported ${doneRows.length} assets as JSON.`)
   }
 
   return (

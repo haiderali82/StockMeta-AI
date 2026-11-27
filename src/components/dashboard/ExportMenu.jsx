@@ -60,15 +60,6 @@ function ExportMenu({ open, onToggle, onClose, onDownloadCSV, onExportJSON }) {
               <span className="font-code-xs text-code-xs text-on-surface-variant">Cols: Filename, Description, Keywords, Categories</span>
             </div>
           </button>
-          <div className="h-px bg-surface-container my-0.5" />
-          <button
-            type="button"
-            onClick={onExportJSON}
-            className="flex items-center gap-space-sm p-space-sm rounded-lg hover:bg-surface-container-low text-left transition-colors"
-          >
-            <Icon name="data_object" className="text-[18px] text-on-surface-variant" />
-            <span className="font-body-sm text-body-sm text-on-surface">Export JSON / IPTC Payload</span>
-          </button>
         </div>
       )}
     </div>
