@@ -49,7 +49,7 @@ function MetadataTable({
     <section className="flex flex-col gap-space-md">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm">
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="font-code-xs text-code-xs text-on-surface-variant/70 font-semibold uppercase tracking-wider">Zone 3</span>
+          {/* <span className="font-code-xs text-code-xs text-on-surface-variant/70 font-semibold uppercase tracking-wider">Zone 3</span> */}
           <span className="font-label-md text-label-md font-semibold text-on-surface">Generated Metadata Inspection</span>
           <span className="font-code-xs text-code-xs px-2 py-0.5 rounded-full bg-surface-container text-on-surface-variant">
             {doneRows.length} of {rows.length} Verified
