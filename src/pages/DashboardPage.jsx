@@ -355,46 +355,64 @@ function DashboardPage() {
         <main className="w-full pt-16 bg-surface">
           <div className="flex flex-col w-full">
             <div className="p-space-md sm:p-space-xl flex flex-col gap-space-xl max-w-7xl w-full mx-auto">
-              <div className="flex flex-col md:flex-row md:items-end justify-between gap-space-md pb-space-sm border-b border-outline-variant/20">
-                <div>
-                  <h2 className="font-headline-lg text-headline-lg font-bold tracking-tight text-on-surface">
-                    Commercial Metadata Generator
-                  </h2>
-                  <p className="font-body-sm text-body-sm text-on-surface-variant mt-1 max-w-xl">
-                    Upload high-resolution photography or 3D renders. The vision model analyzes composition, themes, and
-                    commercial intent to generate search-optimized titles and ranked keyword tags.
-                  </p>
-                </div>
-                <div className="flex items-center gap-space-lg font-code-xs text-code-xs flex-wrap">
-                  <div className="flex flex-col">
-                    <span className="text-on-surface-variant">UPLOADED</span>
-                    <span className="font-headline-sm text-[18px] font-bold text-on-surface tracking-tight">
-                      {metadataRows.length}
-                    </span>
-                  </div>
-                  <div className="h-6 w-px bg-outline-variant/30" />
-                  <div className="flex flex-col">
-                    <span className="text-on-surface-variant">GENERATED TAGS</span>
-                    <span className="font-headline-sm text-[18px] font-bold text-on-surface tracking-tight">
-                      {generatedTags}
-                    </span>
-                  </div>
-                  <div className="h-6 w-px bg-outline-variant/30" />
-                  <div className="flex flex-col">
-                    <span className="text-on-surface-variant">READY TO EXPORT</span>
-                    <span className="font-headline-sm text-[18px] font-bold text-on-surface tracking-tight">
-                      {doneRows.length}
-                    </span>
-                  </div>
-                  <div className="h-6 w-px bg-outline-variant/30" />
-                  <div className="flex flex-col">
-                    <span className="text-on-surface-variant">EXPORTS</span>
-                    <span className="font-headline-sm text-[18px] font-bold text-on-surface tracking-tight">
-                      {exportCount}
-                    </span>
-                  </div>
-                </div>
-              </div>
+             
+<div className="flex flex-col gap-6 border-b border-outline-variant/20 pb-6 lg:flex-row lg:items-center lg:justify-between">
+
+  {/* Header */}
+  <div className="min-w-0 flex-1">
+    <h2 className="font-headline-lg text-headline-lg font-bold tracking-tight text-on-surface">
+      Commercial Metadata Generator
+    </h2>
+
+    <p className="mt-2 max-w-2xl font-body-sm text-body-sm text-on-surface-variant">
+      Upload high-resolution photography or 3D renders. The vision model analyzes
+      composition, themes, and commercial intent to generate search-optimized
+      titles and ranked keyword tags.
+    </p>
+  </div>
+
+  {/* Statistics */}
+  <div className="grid w-full grid-cols-2 gap-3 font-code-xs text-code-xs sm:w-auto sm:min-w-[360px]">
+
+    <div className="flex min-w-0 flex-col justify-center rounded-xl border border-outline-variant/40 bg-surface-container-lowest px-4 py-3 shadow-xs">
+      <span className="whitespace-nowrap text-on-surface-variant pb-3">
+        UPLOADED
+      </span>
+      <span className="font-headline-sm text-[18px] font-bold tracking-tight text-on-surface">
+        {metadataRows.length}
+      </span>
+    </div>
+
+    <div className="flex min-w-0 flex-col justify-center rounded-xl border border-outline-variant/40 bg-surface-container-lowest px-4 py-3 shadow-xs">
+      <span className="whitespace-nowrap text-on-surface-variant pb-3">
+        GENERATED TAGS
+      </span>
+      <span className="font-headline-sm text-[18px] font-bold tracking-tight text-on-surface">
+        {generatedTags}
+      </span>
+    </div>
+
+    <div className="flex min-w-0 flex-col justify-center rounded-xl border border-outline-variant/40 bg-surface-container-lowest px-4 py-3 shadow-xs">
+      <span className="whitespace-nowrap text-on-surface-variant pb-3">
+        READY TO EXPORT
+      </span>
+      <span className="font-headline-sm text-[18px] font-bold tracking-tight text-on-surface">
+        {doneRows.length}
+      </span>
+    </div>
+
+    <div className="flex min-w-0 flex-col justify-center rounded-xl border border-outline-variant/40 bg-surface-container-lowest px-4 py-3 shadow-xs">
+      <span className="whitespace-nowrap text-on-surface-variant pb-3">
+        EXPORTS
+      </span>
+      <span className="font-headline-sm text-[18px] font-bold tracking-tight text-on-surface">
+        {exportCount}
+      </span>
+    </div>
+
+  </div>
+</div>
+
 
               <PlatformSelector selected={platform} onSelect={handlePlatformSelect} />
 
