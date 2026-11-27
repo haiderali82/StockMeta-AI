@@ -163,6 +163,11 @@ function DashboardPage() {
         showToast('Daily limit reached, try again tomorrow.', 'error')
         return true
       }
+      if (err.isNetworkError) {
+        setMetadataRows((rows) => rows.map((r) => (r.id === row.id ? { ...r, status: 'pending' } : r)))
+        showToast(`No internet connection — "${row.filename}" was not sent. Check your connection and try again.`, 'error')
+        return true
+      }
       showToast(`AI generation failed for "${row.filename}" — used placeholder metadata instead.`, 'error')
       applyMockMetadata(row)
       return false

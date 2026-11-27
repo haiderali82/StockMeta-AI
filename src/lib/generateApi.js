@@ -8,11 +8,20 @@ export async function generateMetadata(file, platform) {
   formData.append('image', file, file.name)
   formData.append('platform', platform)
 
-  const res = await fetch(`${FUNCTIONS_URL}/generate`, {
-    method: 'POST',
-    credentials: 'include',
-    body: formData,
-  })
+  let res
+  try {
+    res = await fetch(`${FUNCTIONS_URL}/generate`, {
+      method: 'POST',
+      credentials: 'include',
+      body: formData,
+    })
+  } catch {
+    // fetch rejects (not an HTTP error response) only when the request never reached the server —
+    // offline, DNS failure, CORS, etc. Flag it so callers can tell "never sent" from "server said no".
+    const error = new Error('No internet connection or server down, the request was never sent.')
+    error.isNetworkError = true
+    throw error
+  }
 
   const body = await res.json().catch(() => ({}))
   if (!res.ok) {
