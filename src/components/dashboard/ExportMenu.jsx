@@ -16,11 +16,11 @@ function ExportMenu({ open, onToggle, onClose, onDownloadCSV, onExportJSON }) {
 
   return (
     <div className="relative" ref={containerRef}>
-      <div className="inline-flex rounded-lg shadow-sm">
+      <div className="inline-flex rounded-xl shadow-sm overflow-hidden">
         <button
           type="button"
-          onClick={() => onDownloadCSV('adobe')}
-          className="px-space-md py-1.5 bg-primary text-on-primary font-label-md text-label-md font-semibold rounded-l-lg hover:bg-on-primary-fixed-variant transition-colors flex items-center gap-1.5"
+          onClick={onToggle}
+          className="px-space-md py-1.5 bg-primary text-on-primary font-label-md text-label-md font-semibold hover:bg-on-primary-fixed-variant active:scale-[0.98] transition-all duration-200 flex items-center gap-1.5"
         >
           <Icon name="file_download" className="text-[16px]" />
           <span>Download CSV</span>
@@ -28,9 +28,9 @@ function ExportMenu({ open, onToggle, onClose, onDownloadCSV, onExportJSON }) {
         <button
           type="button"
           onClick={onToggle}
-          className="px-2 py-1.5 bg-primary text-on-primary rounded-r-lg hover:bg-on-primary-fixed-variant transition-colors"
+          className="px-2 py-1.5 bg-primary text-on-primary border-l border-on-primary/20 hover:bg-on-primary-fixed-variant active:scale-[0.98] transition-all duration-200"
         >
-          <Icon name="arrow_drop_down" className="text-[16px]" />
+          <Icon name="arrow_drop_down" className={`text-[16px] transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
         </button>
       </div>
       {open && (
@@ -41,7 +41,7 @@ function ExportMenu({ open, onToggle, onClose, onDownloadCSV, onExportJSON }) {
           <button
             type="button"
             onClick={() => onDownloadCSV('adobe')}
-            className="flex items-start gap-space-sm p-space-sm rounded-lg hover:bg-surface-container-low text-left transition-colors"
+            className="flex items-start gap-space-sm p-space-sm rounded-lg hover:bg-surface-container-low text-left transition-all duration-200"
           >
             <div className="w-6 h-6 rounded bg-red-600 text-white flex items-center justify-center font-bold text-xs">St</div>
             <div className="flex flex-col">
@@ -52,22 +52,13 @@ function ExportMenu({ open, onToggle, onClose, onDownloadCSV, onExportJSON }) {
           <button
             type="button"
             onClick={() => onDownloadCSV('shutterstock')}
-            className="flex items-start gap-space-sm p-space-sm rounded-lg hover:bg-surface-container-low text-left transition-colors"
+            className="flex items-start gap-space-sm p-space-sm rounded-lg hover:bg-surface-container-low text-left transition-all duration-200"
           >
             <div className="w-6 h-6 rounded bg-red-700 text-white flex items-center justify-center font-bold text-xs">Ss</div>
             <div className="flex flex-col">
               <span className="font-body-sm text-body-sm font-semibold text-on-surface">Download Shutterstock CSV</span>
               <span className="font-code-xs text-code-xs text-on-surface-variant">Cols: Filename, Description, Keywords, Categories</span>
             </div>
-          </button>
-          <div className="h-px bg-surface-container my-0.5" />
-          <button
-            type="button"
-            onClick={onExportJSON}
-            className="flex items-center gap-space-sm p-space-sm rounded-lg hover:bg-surface-container-low text-left transition-colors"
-          >
-            <Icon name="data_object" className="text-[18px] text-on-surface-variant" />
-            <span className="font-body-sm text-body-sm text-on-surface">Export JSON / IPTC Payload</span>
           </button>
         </div>
       )}

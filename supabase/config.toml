@@ -21,3 +21,7 @@ verify_jwt = false
 # Supabase JWT — only you should hold that key.
 [functions.haider-admin-login]
 verify_jwt = false
+
+# Protected by our own JWT cookie (checked in-function), not a Supabase JWT.
+[functions.generate]
+verify_jwt = false

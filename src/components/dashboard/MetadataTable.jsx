@@ -3,14 +3,14 @@ import Icon from '../common/Icon'
 import MetadataRow from './MetadataRow'
 import ExportMenu from './ExportMenu'
 
-const categories = ['all', 'Landscapes', 'Business', 'Still Life', 'Technology']
-
 function MetadataTable({
   rows,
+  platform,
   regeneratingId,
   onRemoveKeyword,
   onEditKeywords,
   onCategoryChange,
+  onCategory2Change,
   onCopy,
   onRegenerate,
   onDelete,
@@ -22,10 +22,16 @@ function MetadataTable({
   const [categoryFilter, setCategoryFilter] = useState('all')
   const [exportOpen, setExportOpen] = useState(false)
 
+  const categories = useMemo(
+    () => ['all', ...new Set(rows.flatMap((row) => [row.category, row.category2]).filter(Boolean))],
+    [rows]
+  )
+
   const filteredRows = useMemo(() => {
     const term = search.toLowerCase()
     return rows.filter((row) => {
-      const matchesCategory = categoryFilter === 'all' || row.category === categoryFilter
+      const matchesCategory =
+        categoryFilter === 'all' || row.category === categoryFilter || row.category2 === categoryFilter
       if (!matchesCategory) return false
       if (!term) return true
       const haystack = `${row.filename} ${row.title} ${row.keywords.join(' ')}`.toLowerCase()
@@ -33,57 +39,52 @@ function MetadataTable({
     })
   }, [rows, search, categoryFilter])
 
-  const avgTitleLength = rows.length
-    ? Math.round(rows.reduce((sum, r) => sum + r.title.length, 0) / rows.length)
+  const doneRows = rows.filter((row) => row.status === 'done')
+  const avgTagCount = doneRows.length
+    ? (doneRows.reduce((sum, r) => sum + (r.keywordTotal ?? r.keywords.length), 0) / doneRows.length).toFixed(1)
     : 0
-  const avgTagCount = rows.length
-    ? (rows.reduce((sum, r) => sum + r.keywordTotal, 0) / rows.length).toFixed(1)
-    : 0
+  const schemaLabel = platform === 'adobe' ? 'Schema: Adobe Stock CSV v2' : 'Schema: Shutterstock MShot CSV'
 
   return (
-    <div className="bg-surface-container-lowest rounded-xl shadow-sm flex flex-col overflow-hidden">
-      <div className="p-space-lg flex flex-col lg:flex-row lg:items-center justify-between gap-space-md bg-surface-container-lowest">
-        <div>
-          <div className="flex items-center gap-space-xs">
-            <Icon name="table_chart" className="text-primary text-[22px]" />
-            <h2 className="font-headline-sm text-headline-sm text-on-surface font-semibold">Generated Metadata Review</h2>
-            <span className="font-code-xs text-code-xs bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-semibold">
-              {rows.length} of {rows.length} Verified
-            </span>
-          </div>
-          <p className="font-body-xs text-body-xs text-on-surface-variant mt-0.5">
-            Click into titles or descriptions to make live commercial adjustments. Keywords can be re-ordered, appended, or
-            deleted before export.
-          </p>
+    <section className="flex flex-col gap-space-md">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm">
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* <span className="font-code-xs text-code-xs text-on-surface-variant/70 font-semibold uppercase tracking-wider">Zone 3</span> */}
+          <span className="font-label-md text-label-md font-semibold text-on-surface">Generated Metadata Inspection</span>
+          <span className="font-code-xs text-code-xs px-2 py-0.5 rounded-full bg-surface-container text-on-surface-variant">
+            {doneRows.length} of {rows.length} Verified
+          </span>
         </div>
         <div className="flex flex-wrap items-center gap-space-sm">
           <div className="relative">
-            <Icon name="search" className="absolute left-2.5 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]" />
+            <Icon name="search" className="absolute left-2.5 top-1/2 -translate-y-1/2 text-on-surface-variant text-[16px]" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Filter by filename, title, or keywords..."
-              className="pl-8 pr-3 py-1.5 bg-surface-container-low rounded-lg text-body-xs font-body-xs text-on-surface focus:outline-none focus:bg-surface-container-lowest shadow-xs w-64"
+              placeholder="Filter keywords or title…"
+              className="pl-8 pr-3 py-1.5 rounded-lg border border-outline-variant/30 bg-surface-container-lowest font-body-xs text-body-xs text-on-surface focus:outline-none focus:ring-1 focus:ring-primary w-56"
             />
           </div>
-          <div className="relative">
-            <select
-              value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value)}
-              className="appearance-none bg-surface-container-low text-on-surface font-label-sm text-label-sm pl-3 pr-8 py-1.5 rounded-lg shadow-xs cursor-pointer focus:outline-none focus:bg-surface-container-lowest"
-            >
-              {categories.map((c) => (
-                <option key={c} value={c}>
-                  {c === 'all' ? 'All Categories' : c}
-                </option>
-              ))}
-            </select>
-            <Icon
-              name="expand_more"
-              className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-[16px] text-on-surface-variant"
-            />
-          </div>
+          {categories.length > 1 && (
+            <div className="relative">
+              <select
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+                className="appearance-none bg-surface-container-lowest border border-outline-variant/30 text-on-surface font-label-sm text-label-sm pl-3 pr-8 py-1.5 rounded-lg cursor-pointer focus:outline-none"
+              >
+                {categories.map((c) => (
+                  <option key={c} value={c}>
+                    {c === 'all' ? 'All Categories' : c}
+                  </option>
+                ))}
+              </select>
+              <Icon
+                name="expand_more"
+                className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-[16px] text-on-surface-variant"
+              />
+            </div>
+          )}
           <ExportMenu
             open={exportOpen}
             onToggle={() => setExportOpen((v) => !v)}
@@ -100,73 +101,69 @@ function MetadataTable({
         </div>
       </div>
 
-      <div className="flex flex-col gap-space-md p-space-lg bg-surface-container-low">
-        {rows.length === 0 ? (
-          <div className="flex flex-col items-center justify-center text-center py-16">
-            <div className="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant mb-space-md">
-              <Icon name="auto_awesome" className="text-[36px]" />
-            </div>
-            <h3 className="font-headline-sm text-headline-sm text-on-surface font-semibold">No Image Generated Yet</h3>
-            <p className="font-body-sm text-body-sm text-on-surface-variant max-w-md mt-1">
-              Upload stock images above to generate commercial titles, descriptions, and keywords ready for export.
-            </p>
+      {rows.length === 0 ? (
+        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant/30 flex flex-col items-center justify-center text-center py-16">
+          <div className="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant mb-space-md">
+            <Icon name="auto_awesome" className="text-[36px]" />
           </div>
-        ) : filteredRows.length === 0 ? (
-          <div className="flex flex-col items-center justify-center text-center py-16">
-            <div className="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant mb-space-md">
-              <Icon name="search_off" className="text-[36px]" />
-            </div>
-            <h3 className="font-headline-sm text-headline-sm text-on-surface font-semibold">No Matches Found</h3>
-            <p className="font-body-sm text-body-sm text-on-surface-variant max-w-md mt-1">
-              No results match your search or category filter.
-            </p>
+          <h3 className="font-headline-sm text-headline-sm text-on-surface font-semibold">No Images Generated Yet</h3>
+          <p className="font-body-sm text-body-sm text-on-surface-variant max-w-md mt-1">
+            Upload stock images above to generate commercial titles, descriptions, and keywords ready for export.
+          </p>
+        </div>
+      ) : filteredRows.length === 0 ? (
+        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant/30 flex flex-col items-center justify-center text-center py-16">
+          <div className="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant mb-space-md">
+            <Icon name="search_off" className="text-[36px]" />
           </div>
-        ) : (
-          filteredRows.map((row) => (
+          <h3 className="font-headline-sm text-headline-sm text-on-surface font-semibold">No Matches Found</h3>
+          <p className="font-body-sm text-body-sm text-on-surface-variant max-w-md mt-1">
+            No results match your search or category filter.
+          </p>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-space-md">
+          {filteredRows.map((row) => (
             <MetadataRow
               key={row.id}
               row={row}
+              platform={platform}
               isRegenerating={regeneratingId === row.id}
               onRemoveKeyword={onRemoveKeyword}
               onEditKeywords={onEditKeywords}
               onCategoryChange={onCategoryChange}
+              onCategory2Change={onCategory2Change}
               onCopy={onCopy}
               onRegenerate={onRegenerate}
               onDelete={onDelete}
               onDownloadSEOFile={onDownloadSEOFile}
             />
-          ))
-        )}
-      </div>
+          ))}
+        </div>
+      )}
 
-      <div className="p-space-md bg-surface-container-low flex flex-wrap items-center justify-between gap-space-sm text-body-xs font-body-xs text-on-surface-variant">
-        {filteredRows.length > 0 && (
-          <div className="flex items-center gap-space-md">
+      {doneRows.length > 0 && (
+        <div className="bg-surface-container-lowest p-space-lg rounded-2xl border border-outline-variant/30 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-space-md">
+          <div className="flex items-center gap-space-sm font-code-xs text-code-xs text-on-surface-variant flex-wrap justify-center">
             <span>
-              Showing <strong>{filteredRows.length}</strong> items ready for upload
+              {doneRows.length} Asset{doneRows.length === 1 ? '' : 's'} Ready for Distribution
             </span>
             <span>•</span>
-            <span>
-              Avg Title Length: <strong>{avgTitleLength} chars</strong>
-            </span>
+            <span>Avg {avgTagCount} Keywords / Asset</span>
             <span>•</span>
-            <span>
-              Avg Tag Count: <strong>{avgTagCount} keywords</strong>
-            </span>
+            <span className="text-on-surface font-semibold">{schemaLabel}</span>
           </div>
-        )}
-        <div className="flex items-center gap-space-sm">
           <button
             type="button"
-            onClick={() => onDownloadCSV('adobe')}
-            className="px-space-md py-1 bg-surface-container-lowest text-on-surface hover:bg-surface-container font-label-sm text-label-sm font-semibold rounded shadow-xs transition-colors"
+            onClick={() => onDownloadCSV(platform)}
+            className="w-full sm:w-auto px-space-lg py-space-sm rounded-xl bg-primary hover:bg-on-primary-fixed-variant text-on-primary font-label-md text-label-md font-semibold shadow-xs flex items-center justify-center gap-2 transition-colors"
           >
-            Quick Export All (CSV)
+            <Icon name="file_download" className="text-[16px]" />
+            Download Official CSV Export
           </button>
         </div>
-      </div>
-
-    </div>
+      )}
+    </section>
   )
 }
 
