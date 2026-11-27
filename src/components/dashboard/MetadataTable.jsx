@@ -3,8 +3,6 @@ import Icon from '../common/Icon'
 import MetadataRow from './MetadataRow'
 import ExportMenu from './ExportMenu'
 
-const categories = ['all', 'Landscapes', 'Business', 'Still Life', 'Technology']
-
 function MetadataTable({
   rows,
   regeneratingId,
@@ -21,6 +19,11 @@ function MetadataTable({
   const [search, setSearch] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('all')
   const [exportOpen, setExportOpen] = useState(false)
+
+  const categories = useMemo(
+    () => ['all', ...new Set(rows.map((row) => row.category).filter(Boolean))],
+    [rows]
+  )
 
   const filteredRows = useMemo(() => {
     const term = search.toLowerCase()
@@ -48,7 +51,7 @@ function MetadataTable({
             <Icon name="table_chart" className="text-primary text-[22px]" />
             <h2 className="font-headline-sm text-headline-sm text-on-surface font-semibold">Generated Metadata Review</h2>
             <span className="font-code-xs text-code-xs bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-semibold">
-              {rows.length} of {rows.length} Verified
+              {rows.filter((row) => row.status === 'done').length} of {rows.length} Generated
             </span>
           </div>
           <p className="font-body-xs text-body-xs text-on-surface-variant mt-0.5">

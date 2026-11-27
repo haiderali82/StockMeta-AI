@@ -24,6 +24,132 @@ export const platforms = {
   },
 }
 
+// Adobe Stock categories, number -> name. See claude/spec/dashboard-logic.md.
+export const adobeCategories = [
+  { number: 1, name: 'Animals' },
+  { number: 2, name: 'Buildings and Architecture' },
+  { number: 3, name: 'Business' },
+  { number: 4, name: 'Drinks' },
+  { number: 5, name: 'The Environment' },
+  { number: 6, name: 'States of Mind' },
+  { number: 7, name: 'Food' },
+  { number: 8, name: 'Graphic Resources' },
+  { number: 9, name: 'Hobbies and Leisure' },
+  { number: 10, name: 'Industry' },
+  { number: 11, name: 'Landscapes' },
+  { number: 12, name: 'Lifestyle' },
+  { number: 13, name: 'People' },
+  { number: 14, name: 'Plants and Flowers' },
+  { number: 15, name: 'Culture and Religion' },
+  { number: 16, name: 'Science' },
+  { number: 17, name: 'Social Issues' },
+  { number: 18, name: 'Sports' },
+  { number: 19, name: 'Technology' },
+  { number: 20, name: 'Transport' },
+  { number: 21, name: 'Travel' },
+]
+
+// Shutterstock categories, by name. See claude/spec/dashboard-logic.md.
+export const shutterstockCategories = [
+  'Abstract',
+  'Animals/Wildlife',
+  'Arts',
+  'Backgrounds/Textures',
+  'Beauty/Fashion',
+  'Buildings/Landmarks',
+  'Business/Finance',
+  'Celebrities',
+  'Education',
+  'Food and Drink',
+  'Healthcare/Medical',
+  'Holidays',
+  'Industrial',
+  'Interiors',
+  'Miscellaneous',
+  'Nature',
+  'Objects',
+  'Parks/Outdoor',
+  'People',
+  'Religion',
+  'Science',
+  'Signs/Symbols',
+  'Sports/Recreation',
+  'Technology',
+  'Transportation',
+  'Vintage',
+]
+
+export function formatFileSize(bytes) {
+  if (bytes < 1024) return `${bytes} B`
+  const kb = bytes / 1024
+  if (kb < 1024) return `${kb.toFixed(1)} KB`
+  return `${(kb / 1024).toFixed(1)} MB`
+}
+
+const MOCK_KEYWORD_POOL = [
+  'stock photo',
+  'commercial use',
+  'high resolution',
+  'copy space',
+  'professional',
+  'background',
+  'closeup',
+  'studio',
+  'natural light',
+  'editorial',
+]
+
+export function densityFor(total, max) {
+  const ratio = total / max
+  if (ratio >= 0.9) return 'Maximum'
+  if (ratio >= 0.6) return 'High'
+  if (ratio >= 0.3) return 'Normal'
+  return 'Low'
+}
+
+// Placeholder metadata used until a real AI provider is wired into the
+// `generate` function (see claude/spec/dashboard-logic.md). Lets the
+// upload -> generate -> review -> export flow be exercised end to end.
+export function buildMockMetadata(filename, platform) {
+  let base = filename.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ').trim()
+  if (!base || /^\d+$/.test(base)) base = 'Untitled Stock Photo'
+  const titleCase = base.replace(/\b\w/g, (c) => c.toUpperCase())
+
+  const words = titleCase.toLowerCase().split(/\s+/).filter((w) => w.length > 2)
+  const keywordMax = platform === 'adobe' ? 49 : 50
+  const keywords = Array.from(new Set([...words, ...MOCK_KEYWORD_POOL])).slice(0, Math.min(15, keywordMax))
+
+  const description = `${titleCase}, a high-resolution commercial stock image suitable for editorial and marketing use.`
+
+  if (platform === 'adobe') {
+    const cat = adobeCategories[Math.floor(Math.random() * adobeCategories.length)]
+    return {
+      title: `${titleCase} — Professional Stock Photography`,
+      description,
+      keywords,
+      keywordTotal: keywords.length,
+      keywordMax,
+      density: densityFor(keywords.length, keywordMax),
+      category: cat.name,
+      categoryNumber: cat.number,
+      categoryOptions: adobeCategories.map((c) => c.name),
+    }
+  }
+
+  const categoryName = shutterstockCategories[Math.floor(Math.random() * shutterstockCategories.length)]
+  return {
+    title: titleCase,
+    description,
+    keywords,
+    keywordTotal: keywords.length,
+    keywordMax,
+    density: densityFor(keywords.length, keywordMax),
+    category: categoryName,
+    categoryNumber: null,
+    categoryOptions: shutterstockCategories,
+  }
+}
+
 export const initialMetadataRows = [
   // {
   //   id: 1,

@@ -46,7 +46,9 @@ function MetadataRow({
               </option>
             ))}
           </select>
-          <span className="font-code-xs text-code-xs text-on-surface-variant">Adobe Category #{row.categoryNumber}</span>
+          {row.categoryNumber != null && (
+            <span className="font-code-xs text-code-xs text-on-surface-variant">Adobe Category #{row.categoryNumber}</span>
+          )}
         </div>
       </div>
 
@@ -181,7 +183,7 @@ function MetadataRow({
             className="px-space-lg py-space-sm bg-primary text-on-primary font-label-md text-label-md font-semibold rounded-lg flex items-center gap-2 hover:bg-on-primary-fixed-variant transition-colors shadow-sm"
           >
             <Icon name="autorenew" className={`text-[18px] ${isRegenerating ? 'animate-spin' : ''}`} />
-            Regenerate
+            {isRegenerating ? 'Generating…' : row.status === 'pending' ? 'Generate' : 'Regenerate'}
           </button>
         </div>
       </div>

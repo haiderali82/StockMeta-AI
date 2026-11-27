@@ -1,6 +1,25 @@
+import { useRef, useState } from 'react'
 import Icon from '../common/Icon'
 
-function UploadZone({ onBrowseFiles }) {
+const ACCEPTED_TYPES = ['image/png', 'image/jpeg']
+
+function UploadZone({ onFilesSelected }) {
+  const inputRef = useRef(null)
+  const [isDragging, setIsDragging] = useState(false)
+
+  function openPicker() {
+    inputRef.current?.click()
+  }
+
+  function handleFiles(fileList) {
+    const files = Array.from(fileList)
+    const accepted = files.filter((file) => ACCEPTED_TYPES.includes(file.type))
+    const rejectedCount = files.length - accepted.length
+    if (accepted.length > 0 || rejectedCount > 0) {
+      onFilesSelected(accepted, rejectedCount)
+    }
+  }
+
   return (
     <div className="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm flex flex-col gap-space-md">
       <div className="flex items-center justify-between">
@@ -11,9 +30,32 @@ function UploadZone({ onBrowseFiles }) {
       </div>
 
       <div
-        onClick={onBrowseFiles}
-        className="relative group p-space-xl rounded-xl bg-surface-container-low transition-all duration-300 hover:bg-surface-container flex flex-col items-center justify-center text-center cursor-pointer overflow-hidden shadow-inner"
+        onClick={openPicker}
+        onDragOver={(e) => {
+          e.preventDefault()
+          setIsDragging(true)
+        }}
+        onDragLeave={() => setIsDragging(false)}
+        onDrop={(e) => {
+          e.preventDefault()
+          setIsDragging(false)
+          handleFiles(e.dataTransfer.files)
+        }}
+        className={`relative group p-space-xl rounded-xl bg-surface-container-low transition-all duration-300 hover:bg-surface-container flex flex-col items-center justify-center text-center cursor-pointer overflow-hidden shadow-inner ${
+          isDragging ? 'ring-2 ring-primary bg-surface-container' : ''
+        }`}
       >
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/png,image/jpeg"
+          multiple
+          className="hidden"
+          onChange={(e) => {
+            handleFiles(e.target.files)
+            e.target.value = ''
+          }}
+        />
         <svg className="absolute inset-0 w-full h-full opacity-40 pointer-events-none" height="100%" width="100%" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <pattern height="24" id="upload-grid" patternUnits="userSpaceOnUse" width="24">
@@ -28,14 +70,14 @@ function UploadZone({ onBrowseFiles }) {
           </div>
           <h3 className="font-headline-sm text-headline-sm text-on-surface font-semibold">Upload Your Stock Images</h3>
           <p className="font-body-sm text-body-sm text-on-surface-variant mt-1">
-            Drag and drop your high-resolution images here 
+            Drag and drop your high-resolution images here
           </p>
           <div className="flex items-center gap-space-sm mt-space-lg">
             <button
               type="button"
               onClick={(e) => {
                 e.stopPropagation()
-                onBrowseFiles()
+                openPicker()
               }}
               className="px-space-lg py-space-sm bg-primary text-on-primary rounded-lg font-label-md text-label-md font-semibold hover:bg-on-primary-fixed-variant transition-colors shadow-sm flex items-center gap-2"
             >
