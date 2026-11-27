@@ -1,6 +1,6 @@
 import { corsHeaders, handleOptions } from '../_shared/cors.ts'
 import { supabaseAdmin } from '../_shared/supabaseAdmin.ts'
-import { generateOtp, hashOtp, sendOtpEmailPlaceholder, OTP_TTL_MS, RESEND_COOLDOWN_MS, MAX_RESENDS } from '../_shared/otp.ts'
+import { generateOtp, hashOtp, sendOtpEmail, OTP_TTL_MS, RESEND_COOLDOWN_MS, MAX_RESENDS } from '../_shared/otp.ts'
 
 Deno.serve(async (req) => {
   const preflight = handleOptions(req)
@@ -51,7 +51,7 @@ Deno.serve(async (req) => {
     })
     .eq('id', record.id)
 
-  sendOtpEmailPlaceholder(record.email, otp)
+  await sendOtpEmail(record.email, otp)
 
   return new Response(JSON.stringify({ message: 'OTP sent to your email' }), { status: 200, headers })
 })

@@ -16,9 +16,36 @@ export async function hashOtp(otp: string): Promise<string> {
     .join('')
 }
 
-// Placeholder until a real provider (nodemailer/Resend/SendGrid/Brevo) is
-// wired up. Edge Function logs (`supabase functions logs <name>`) are
-// where this ends up for now.
-export function sendOtpEmailPlaceholder(email: string, otp: string): void {
-  console.log(`[dev-only] OTP for ${email}: ${otp}`)
+// Sends the OTP email via Resend (https://resend.com). Requires the
+// RESEND_API_KEY secret; RESEND_FROM_EMAIL defaults to Resend's shared
+// sandbox sender, which can only deliver to the Resend account's own
+// verified address until a custom domain is verified.
+export async function sendOtpEmail(email: string, otp: string): Promise<void> {
+  const apiKey = Deno.env.get('RESEND_API_KEY')
+  const from = Deno.env.get('RESEND_FROM_EMAIL') ?? 'onboarding@resend.dev'
+
+  if (!apiKey) {
+    console.log(`[dev-only] RESEND_API_KEY not set. OTP for ${email}: ${otp}`)
+    return
+  }
+
+  const res = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      from,
+      to: email,
+      subject: `${otp} is your login code`,
+      html: `<p>Your login code is <strong>${otp}</strong>.</p><p>It expires in 5 minutes. If you didn't request this, you can ignore this email.</p>`,
+      text: `Your login code is ${otp}. It expires in 5 minutes.`,
+    }),
+  })
+
+  if (!res.ok) {
+    const body = await res.text().catch(() => '')
+    console.error(`Resend error (${res.status}): ${body}`)
+  }
 }
