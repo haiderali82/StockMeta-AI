@@ -22,11 +22,12 @@ export function buildAdobeCsv(rows) {
 
 export function buildShutterstockCsv(rows) {
   const lines = [
-    toCsvRow(['Filename', 'Description', 'Keywords', 'Categories', 'Editorial', 'Mature Content', 'Illustration']),
+    toCsvRow(['Filename', 'Description', 'Keywords', 'Categories', 'Illustration', 'Mature Content', 'Editorial']),
   ]
   rows.forEach((row) => {
+    const categories = row.categoriesList ?? [row.category, row.category2].filter(Boolean)
     lines.push(
-      toCsvRow([row.filename, row.description ?? '', row.keywords.join(', '), row.category, 'No', 'No', 'No'])
+      toCsvRow([row.filename, row.description ?? '', row.keywords.join(', '), categories.join(', '), 'No', 'No', 'No'])
     )
   })
   return lines.join('\r\n') + '\r\n'

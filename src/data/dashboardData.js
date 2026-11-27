@@ -79,6 +79,145 @@ export const shutterstockCategories = [
   'Vintage',
 ]
 
+// Matches a raw category string against the official Shutterstock list,
+// correcting case/whitespace drift. Returns valid:false when nothing matches
+// so the caller can flag the row instead of silently guessing.
+export function reconcileShutterstockCategory(raw) {
+  const trimmed = String(raw ?? '').trim()
+  if (!trimmed) return { value: '', changed: false, valid: false }
+  if (shutterstockCategories.includes(trimmed)) return { value: trimmed, changed: false, valid: true }
+  const lower = trimmed.toLowerCase()
+  const match = shutterstockCategories.find((c) => c.toLowerCase() === lower)
+  if (match) return { value: match, changed: true, valid: true }
+  return { value: '', changed: true, valid: false }
+}
+
+const SHUTTERSTOCK_REVIEW_FALLBACK = 'Miscellaneous'
+
+// Validates & corrects Categories right before a Shutterstock CSV export:
+// only official names reach the file, every row keeps 1-2 of them, and any
+// row the AI (or a manual edit) left unclear gets a safe fallback plus a
+// manual-review flag instead of an invalid or blank cell.
+export function reconcileShutterstockCategories(rows) {
+  const corrected = []
+  const review = []
+  const outRows = rows.map((row) => {
+    const primary = reconcileShutterstockCategory(row.category)
+    const secondary = row.category2 ? reconcileShutterstockCategory(row.category2) : null
+    let categories = [...new Set([primary.value, secondary?.value].filter(Boolean))].slice(0, 2)
+    const hadInvalid = !primary.valid || (secondary ? !secondary.valid : false)
+    const wasChanged = primary.changed || (secondary?.changed ?? false)
+
+    if (categories.length === 0) categories = [SHUTTERSTOCK_REVIEW_FALLBACK]
+
+    if (row.needsReview || hadInvalid) review.push(row.filename)
+    else if (wasChanged) corrected.push(row.filename)
+
+    return { ...row, category: categories[0], category2: categories[1] ?? null, categoriesList: categories }
+  })
+  return { rows: outRows, report: { corrected, review } }
+}
+
+// Best-effort category correspondence between the two platforms' taxonomies,
+// used to re-tag a row's category when the user switches platform instead
+// of re-running generation. Title, description and keywords are untouched.
+export const adobeToShutterstockCategory = {
+  Animals: 'Animals/Wildlife',
+  'Buildings and Architecture': 'Buildings/Landmarks',
+  Business: 'Business/Finance',
+  Drinks: 'Food and Drink',
+  'The Environment': 'Nature',
+  'States of Mind': 'Miscellaneous',
+  Food: 'Food and Drink',
+  'Graphic Resources': 'Backgrounds/Textures',
+  'Hobbies and Leisure': 'Arts',
+  Industry: 'Industrial',
+  Landscapes: 'Nature',
+  Lifestyle: 'Miscellaneous',
+  People: 'People',
+  'Plants and Flowers': 'Nature',
+  'Culture and Religion': 'Religion',
+  Science: 'Science',
+  'Social Issues': 'Miscellaneous',
+  Sports: 'Sports/Recreation',
+  Technology: 'Technology',
+  Transport: 'Transportation',
+  Travel: 'Parks/Outdoor',
+}
+
+export const shutterstockToAdobeCategory = {
+  Abstract: 'Graphic Resources',
+  'Animals/Wildlife': 'Animals',
+  Arts: 'Hobbies and Leisure',
+  'Backgrounds/Textures': 'Graphic Resources',
+  'Beauty/Fashion': 'Lifestyle',
+  'Buildings/Landmarks': 'Buildings and Architecture',
+  'Business/Finance': 'Business',
+  Celebrities: 'People',
+  Education: 'Social Issues',
+  'Food and Drink': 'Food',
+  'Healthcare/Medical': 'Science',
+  Holidays: 'Culture and Religion',
+  Industrial: 'Industry',
+  Interiors: 'Buildings and Architecture',
+  Miscellaneous: 'Lifestyle',
+  Nature: 'The Environment',
+  Objects: 'Graphic Resources',
+  'Parks/Outdoor': 'Travel',
+  People: 'People',
+  Religion: 'Culture and Religion',
+  Science: 'Science',
+  'Signs/Symbols': 'Graphic Resources',
+  'Sports/Recreation': 'Sports',
+  Technology: 'Technology',
+  Transportation: 'Transport',
+  Vintage: 'Culture and Religion',
+}
+
+// Re-tags a row's category (and options) for a newly selected platform.
+// Keeps title, description and keywords exactly as generated — only the
+// category/category2/categoryNumber/categoryOptions fields change.
+export function remapRowForPlatform(row, targetPlatform) {
+  const categoryOptions =
+    targetPlatform === 'adobe' ? adobeCategories.map((c) => c.name) : shutterstockCategories
+
+  if (!row.category) {
+    return { ...row, categoryOptions }
+  }
+
+  if (targetPlatform === 'shutterstock') {
+    const mapOne = (name) =>
+      adobeToShutterstockCategory[name] ?? (shutterstockCategories.includes(name) ? name : 'Miscellaneous')
+    const category = mapOne(row.category)
+    const category2raw = row.category2 ? mapOne(row.category2) : null
+    return {
+      ...row,
+      category,
+      category2: category2raw && category2raw !== category ? category2raw : null,
+      categoryNumber: null,
+      categoryOptions,
+    }
+  }
+
+  const mapOne = (name) =>
+    shutterstockToAdobeCategory[name] ?? (adobeCategories.some((c) => c.name === name) ? name : 'Lifestyle')
+  const category = mapOne(row.category)
+  const matched = adobeCategories.find((c) => c.name === category)
+  return {
+    ...row,
+    category,
+    category2: null,
+    categoryNumber: matched?.number ?? null,
+    categoryOptions,
+  }
+}
+
+// Strips the extension and lowercases, so "51.png" and "51.JPG" are
+// recognized as the same asset when matching uploads against the queue.
+export function baseFileName(filename) {
+  return String(filename ?? '').replace(/\.[^.]+$/, '').toLowerCase()
+}
+
 export function formatFileSize(bytes) {
   if (bytes < 1024) return `${bytes} B`
   const kb = bytes / 1024
@@ -137,6 +276,8 @@ export function buildMockMetadata(filename, platform) {
   }
 
   const categoryName = shutterstockCategories[Math.floor(Math.random() * shutterstockCategories.length)]
+  const remainingCategories = shutterstockCategories.filter((c) => c !== categoryName)
+  const category2 = Math.random() < 0.5 ? remainingCategories[Math.floor(Math.random() * remainingCategories.length)] : null
   return {
     title: titleCase,
     description,
@@ -145,8 +286,10 @@ export function buildMockMetadata(filename, platform) {
     keywordMax,
     density: densityFor(keywords.length, keywordMax),
     category: categoryName,
+    category2,
     categoryNumber: null,
     categoryOptions: shutterstockCategories,
+    needsReview: false,
   }
 }
 

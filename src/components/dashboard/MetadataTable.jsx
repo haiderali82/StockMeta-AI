@@ -10,6 +10,7 @@ function MetadataTable({
   onRemoveKeyword,
   onEditKeywords,
   onCategoryChange,
+  onCategory2Change,
   onCopy,
   onRegenerate,
   onDelete,
@@ -22,14 +23,15 @@ function MetadataTable({
   const [exportOpen, setExportOpen] = useState(false)
 
   const categories = useMemo(
-    () => ['all', ...new Set(rows.map((row) => row.category).filter(Boolean))],
+    () => ['all', ...new Set(rows.flatMap((row) => [row.category, row.category2]).filter(Boolean))],
     [rows]
   )
 
   const filteredRows = useMemo(() => {
     const term = search.toLowerCase()
     return rows.filter((row) => {
-      const matchesCategory = categoryFilter === 'all' || row.category === categoryFilter
+      const matchesCategory =
+        categoryFilter === 'all' || row.category === categoryFilter || row.category2 === categoryFilter
       if (!matchesCategory) return false
       if (!term) return true
       const haystack = `${row.filename} ${row.title} ${row.keywords.join(' ')}`.toLowerCase()
@@ -125,10 +127,12 @@ function MetadataTable({
             <MetadataRow
               key={row.id}
               row={row}
+              platform={platform}
               isRegenerating={regeneratingId === row.id}
               onRemoveKeyword={onRemoveKeyword}
               onEditKeywords={onEditKeywords}
               onCategoryChange={onCategoryChange}
+              onCategory2Change={onCategory2Change}
               onCopy={onCopy}
               onRegenerate={onRegenerate}
               onDelete={onDelete}

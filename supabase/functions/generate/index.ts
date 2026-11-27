@@ -25,8 +25,12 @@ function buildPrompt(platform: string): string {
     titleRule,
     `Write ${keywordRange} relevant keywords as a "keywords" array, ordered from most to least important, no duplicates.`,
     customInstruction,
-    `Pick exactly one "category", copying the name exactly from this list: ${JSON.stringify(categories)}.`,
-    'Respond with ONLY a JSON object of this shape: {"title": string, "description": string, "keywords": string[], "category": string}',
+    platform === 'shutterstock'
+      ? `Pick 1 or 2 categories that best match the image as a "categories" array, copying each name exactly from this list: ${JSON.stringify(categories)}. Only include a second category when it is clearly also relevant — do not pad to two.`
+      : `Pick exactly one "category", copying the name exactly from this list: ${JSON.stringify(categories)}.`,
+    platform === 'shutterstock'
+      ? 'Respond with ONLY a JSON object of this shape: {"title": string, "description": string, "keywords": string[], "categories": string[]}'
+      : 'Respond with ONLY a JSON object of this shape: {"title": string, "description": string, "keywords": string[], "category": string}',
   ]
     .filter(Boolean)
     .join('\n')
@@ -73,6 +77,17 @@ function validCategory(platform: string, category: unknown): string | null {
   return categoryNamesFor(platform).includes(category) ? category : null
 }
 
+// Shutterstock allows 1-2 categories; keeps only names from the official
+// list, dedups, and caps at 2 so a stray extra guess can't sneak through.
+function validCategories(platform: string, categories: unknown): string[] {
+  if (!Array.isArray(categories)) return []
+  const names = categoryNamesFor(platform)
+  const valid = categories.filter((c): c is string => typeof c === 'string' && names.includes(c))
+  return [...new Set(valid)].slice(0, 2)
+}
+
+const SHUTTERSTOCK_REVIEW_FALLBACK = 'Miscellaneous'
+
 Deno.serve(async (req) => {
   const preflight = handleOptions(req)
   if (preflight) return preflight
@@ -114,8 +129,12 @@ Deno.serve(async (req) => {
   let result
   try {
     result = await callGemini(apiKey, prompt, file.type, base64Data)
-    // One retry if the category came back outside the allowed list.
-    if (!validCategory(platform, result.category)) {
+    // One retry if the category(ies) came back outside the allowed list.
+    const needsRetry =
+      platform === 'shutterstock'
+        ? validCategories(platform, result.categories).length === 0
+        : !validCategory(platform, result.category)
+    if (needsRetry) {
       result = await callGemini(apiKey, prompt, file.type, base64Data)
     }
   } catch (err) {
@@ -126,20 +145,26 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ error: 'AI generation failed' }), { status: 502, headers })
   }
 
-  const categories = categoryNamesFor(platform)
-  const category = validCategory(platform, result.category) ?? categories[0]
-  const categoryNumber = platform === 'adobe' ? ADOBE_CATEGORIES.find((c) => c.name === category)?.number ?? 1 : null
   const keywordMax = platform === 'adobe' ? 49 : 50
   const keywords = Array.isArray(result.keywords) ? result.keywords.filter((k: unknown) => typeof k === 'string') : []
+  const base = {
+    title: typeof result.title === 'string' ? result.title.slice(0, 200) : '',
+    description: typeof result.description === 'string' ? result.description : '',
+    keywords: keywords.slice(0, keywordMax),
+  }
+
+  if (platform === 'adobe') {
+    const category = validCategory(platform, result.category) ?? ADOBE_CATEGORIES[0].name
+    const categoryNumber = ADOBE_CATEGORIES.find((c) => c.name === category)?.number ?? 1
+    return new Response(JSON.stringify({ ...base, category, categoryNumber }), { status: 200, headers })
+  }
+
+  const validated = validCategories(platform, result.categories)
+  const needsReview = validated.length === 0
+  const resultCategories = needsReview ? [SHUTTERSTOCK_REVIEW_FALLBACK] : validated
 
   return new Response(
-    JSON.stringify({
-      title: typeof result.title === 'string' ? result.title.slice(0, 200) : '',
-      description: typeof result.description === 'string' ? result.description : '',
-      keywords: keywords.slice(0, keywordMax),
-      category,
-      categoryNumber,
-    }),
+    JSON.stringify({ ...base, categories: resultCategories, category: resultCategories[0], needsReview }),
     { status: 200, headers },
   )
 })

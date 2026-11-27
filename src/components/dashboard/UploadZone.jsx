@@ -2,7 +2,14 @@ import { useRef, useState } from 'react'
 import Icon from '../common/Icon'
 import { formatFileSize } from '../../data/dashboardData'
 
-const ACCEPTED_TYPES = ['image/png', 'image/jpeg']
+const ACCEPTED_TYPES_BY_PLATFORM = {
+  adobe: ['image/png'],
+  shutterstock: ['image/jpeg'],
+}
+const ACCEPT_LABEL_BY_PLATFORM = {
+  adobe: 'PNG',
+  shutterstock: 'JPG',
+}
 
 const statusMeta = {
   pending: { label: 'Queued', dot: 'bg-on-surface-variant', text: 'text-on-surface-variant' },
@@ -42,9 +49,11 @@ function StagedCard({ row }) {
   )
 }
 
-function UploadZone({ onFilesSelected, rows = [] }) {
+function UploadZone({ onFilesSelected, rows = [], platform }) {
   const inputRef = useRef(null)
   const [isDragging, setIsDragging] = useState(false)
+  const acceptedTypes = ACCEPTED_TYPES_BY_PLATFORM[platform] ?? ['image/png', 'image/jpeg']
+  const acceptLabel = ACCEPT_LABEL_BY_PLATFORM[platform] ?? 'JPG, PNG'
 
   function openPicker() {
     inputRef.current?.click()
@@ -52,8 +61,17 @@ function UploadZone({ onFilesSelected, rows = [] }) {
 
   function handleFiles(fileList) {
     const files = Array.from(fileList)
-    const accepted = files.filter((file) => ACCEPTED_TYPES.includes(file.type))
-    const rejectedCount = files.length - accepted.length
+    const accepted = []
+    let rejectedCount = 0
+
+    for (const file of files) {
+      if (!acceptedTypes.includes(file.type)) {
+        rejectedCount++
+        continue
+      }
+      accepted.push(file)
+    }
+
     if (accepted.length > 0 || rejectedCount > 0) {
       onFilesSelected(accepted, rejectedCount)
     }
@@ -94,7 +112,7 @@ function UploadZone({ onFilesSelected, rows = [] }) {
         <input
           ref={inputRef}
           type="file"
-          accept="image/png,image/jpeg"
+          accept={acceptedTypes.join(',')}
           multiple
           className="hidden"
           onChange={(e) => {
@@ -120,17 +138,9 @@ function UploadZone({ onFilesSelected, rows = [] }) {
           </button>
         </div>
         <p className="font-body-xs text-body-xs text-on-surface-variant/70 mt-1">
-          Supports high-res JPG, PNG up to 50MB per asset
+          Supports high-res {acceptLabel} up to 50MB per asset
         </p>
       </div>
-
-      {rows.length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-space-md">
-          {rows.map((row) => (
-            <StagedCard key={row.id} row={row} />
-          ))}
-        </div>
-      )}
     </section>
   )
 }

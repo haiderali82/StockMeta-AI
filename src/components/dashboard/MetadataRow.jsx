@@ -2,10 +2,12 @@ import Icon from '../common/Icon'
 
 function MetadataRow({
   row,
+  platform,
   isRegenerating,
   onRemoveKeyword,
   onEditKeywords,
   onCategoryChange,
+  onCategory2Change,
   onCopy,
   onRegenerate,
   onDelete,
@@ -19,6 +21,16 @@ function MetadataRow({
         <div className="w-24 h-24 lg:w-full lg:h-32 rounded-xl overflow-hidden bg-surface-container border border-outline-variant/20 shadow-xs flex-shrink-0">
           <img className="w-full h-full object-cover" src={row.img} alt={row.filename} />
         </div>
+        <button
+          type="button"
+          onClick={() => onDelete(row.id)}
+          title="Delete"
+          aria-label="Delete image"
+          className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-lg border border-error/30 bg-error-container/30 text-error font-label-sm text-label-sm font-medium hover:bg-error-container/60 hover:border-error/50 transition-colors"
+        >
+          <Icon name="delete" className="text-[15px]" />
+          Delete
+        </button>
         <div className="flex flex-col text-on-surface-variant min-w-0">
           <span className="font-body-xs text-body-xs font-semibold text-on-surface truncate max-w-[180px]" title={row.filename}>
             {row.filename}
@@ -134,7 +146,7 @@ function MetadataRow({
         </div>
 
         <div className="pt-space-sm border-t border-outline-variant/20 flex flex-wrap items-center justify-between gap-space-sm">
-          <div className="flex items-center gap-space-sm">
+          <div className="flex flex-wrap items-center gap-space-sm">
             <span className="font-body-xs text-body-xs text-on-surface-variant">Platform Category:</span>
             <select
               value={row.category}
@@ -148,6 +160,28 @@ function MetadataRow({
                 </option>
               ))}
             </select>
+            {platform === 'shutterstock' && (
+              <select
+                value={row.category2 ?? ''}
+                onChange={(e) => onCategory2Change(row.id, e.target.value)}
+                className="bg-surface-container-low hover:bg-surface-container border border-outline-variant/30 font-label-sm text-label-sm font-medium text-on-surface-variant rounded-lg px-space-sm py-1 focus:outline-none cursor-pointer"
+              >
+                <option value="">+ Secondary category</option>
+                {row.categoryOptions
+                  .filter((opt) => opt !== row.category)
+                  .map((opt) => (
+                    <option key={opt} value={opt}>
+                      {opt}
+                    </option>
+                  ))}
+              </select>
+            )}
+            {row.needsReview && (
+              <span className="inline-flex items-center gap-1 font-code-xs text-code-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">
+                <Icon name="flag" className="text-[13px]" />
+                Needs manual review
+              </span>
+            )}
           </div>
           <div className="flex items-center gap-space-xs">
             <button
@@ -165,14 +199,6 @@ function MetadataRow({
             >
               <Icon name="refresh" className={`text-[15px] ${isRegenerating ? 'animate-spin' : ''}`} />
               {isRegenerating ? 'Generating…' : row.status === 'pending' ? 'Generate' : 'Regenerate'}
-            </button>
-            <button
-              type="button"
-              onClick={() => onDelete(row.id)}
-              title="Delete"
-              className="p-1.5 rounded-lg text-on-surface-variant/70 hover:text-error hover:bg-error-container/40 transition-colors"
-            >
-              <Icon name="delete" className="text-[17px]" />
             </button>
           </div>
         </div>
