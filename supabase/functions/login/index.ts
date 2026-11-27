@@ -1,7 +1,7 @@
 import { corsHeaders, handleOptions } from '../_shared/cors.ts'
 import { supabaseAdmin } from '../_shared/supabaseAdmin.ts'
 import { checkRateLimit, clientIp } from '../_shared/rateLimit.ts'
-import { generateOtp, hashOtp, sendOtpEmailPlaceholder, OTP_TTL_MS } from '../_shared/otp.ts'
+import { generateOtp, hashOtp, sendOtpEmail, OTP_TTL_MS } from '../_shared/otp.ts'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -67,7 +67,7 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ error: 'Could not start login. Please try again.' }), { status: 500, headers })
   }
 
-  sendOtpEmailPlaceholder(user.email, otp)
+  await sendOtpEmail(user.email, otp)
 
   return new Response(JSON.stringify({ message: 'OTP sent to your email', ticket: inserted.ticket }), { status: 200, headers })
 })
