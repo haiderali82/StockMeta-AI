@@ -345,7 +345,6 @@ function DashboardPage() {
           onMenuClick={() => setSidebarOpen(true)}
           platform={platform}
           onPlatformSelect={handlePlatformSelect}
-          onExportCSV={() => handleDownloadCSV(platform)}
         />
         <main className="w-full pt-16 bg-surface">
           <div className="flex flex-col w-full">

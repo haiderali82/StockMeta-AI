@@ -19,7 +19,7 @@ function ExportMenu({ open, onToggle, onClose, onDownloadCSV, onExportJSON }) {
       <div className="inline-flex rounded-lg shadow-sm">
         <button
           type="button"
-          onClick={() => onDownloadCSV('adobe')}
+          onClick={onToggle}
           className="px-space-md py-1.5 bg-primary text-on-primary font-label-md text-label-md font-semibold rounded-l-lg hover:bg-on-primary-fixed-variant transition-colors flex items-center gap-1.5"
         >
           <Icon name="file_download" className="text-[16px]" />

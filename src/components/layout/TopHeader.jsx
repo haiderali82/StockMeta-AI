@@ -4,7 +4,7 @@ import Avatar from '../common/Avatar'
 import { useAuth } from '../../context/AuthContext'
 import { platforms } from '../../data/dashboardData'
 
-function TopHeader({ onMenuClick = () => {}, platform, onPlatformSelect = () => {}, onExportCSV = () => {} }) {
+function TopHeader({ onMenuClick = () => {}, platform, onPlatformSelect = () => {} }) {
   const { logout, email } = useAuth()
   const navigate = useNavigate()
 
@@ -61,14 +61,6 @@ function TopHeader({ onMenuClick = () => {}, platform, onPlatformSelect = () => 
           <Icon name="book" className="text-[16px]" />
           Docs
         </a>
-        <button
-          type="button"
-          onClick={onExportCSV}
-          className="inline-flex items-center gap-1.5 px-space-md py-1.5 rounded-lg bg-primary hover:bg-on-primary-fixed-variant text-on-primary font-label-md text-label-md font-semibold shadow-xs transition-colors"
-        >
-          <Icon name="file_download" className="text-[16px]" />
-          <span className="hidden sm:inline">Export CSV</span>
-        </button>
         <div className="hidden md:block h-4 w-px bg-outline-variant/40" />
         <button
           type="button"
